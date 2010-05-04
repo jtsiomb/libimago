@@ -1,0 +1,55 @@
+dbg = -g
+opt =
+
+csrc = $(wildcard src/*.c)
+ccsrc = $(wildcard src/*.cc)
+obj = $(csrc:.c=.o) $(ccsrc:.cc=.o)
+lib_a = libimago.a
+
+somajor = 1
+sominor = 0
+
+incdir = -I$(PREFIX)/include
+libdir = -L$(PREFIX)/lib
+
+ifeq ($(shell uname -s), Darwin)
+	lib_so = libimago.dylib
+	shared = -dynamiclib
+	# add macports and fink dirs to the include and lib paths
+	incdir += -I/opt/local/include -I/sw/local/include
+	libdir += -L/opt/local/lib -L/sw/local/lib
+else
+	soname = libimago.so.$(somajor)
+	lib_so = $(soname).$(sominor)
+	shared = -shared -Wl,-soname,$(soname)
+endif
+
+ifeq ($(shell uname -s), IRIX)
+	# add nekoware and SGI freeware dirs to the include and lib paths
+	incdir += -I/usr/nekoware/include -I/usr/freeware/include
+	libdir += -L/usr/nekoware/lib -L/usr/freeware/lib
+endif
+
+CC = gcc
+CXX = g++
+AR = ar
+CFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
+CXXFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
+LDFLAGS = $(libdir) -lpng -lz -ljpeg
+
+.PHONY: all
+all: $(lib_a) $(lib_so)
+
+$(lib_a): $(obj)
+	$(AR) rcs $@ $^
+
+$(lib_so): $(obj)
+	$(CXX) $(CXXFLAGS) $(shared) -o $@ $^ $(LDFLAGS)
+
+.PHONY: clean
+clean:
+	rm -f $(obj)
+
+.PHONY: distclean
+distclean:
+	rm -f $(obj) $(lib_so) $(lib_a) Makefile src/modules.c

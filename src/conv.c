@@ -1,0 +1,228 @@
+#include <string.h>
+#include "imago2.h"
+
+#define CLAMP(x, a, b)	((x) < (a) ? (a) : ((x) > (b) ? (b) : (x)))
+
+struct pixel {
+	float r, g, b, a;
+};
+
+static void unpack_grey8(struct pixel *unp, void *pptr, int count);
+static void unpack_rgb24(struct pixel *unp, void *pptr, int count);
+static void unpack_rgba32(struct pixel *unp, void *pptr, int count);
+static void unpack_greyf(struct pixel *unp, void *pptr, int count);
+static void unpack_rgbf(struct pixel *unp, void *pptr, int count);
+static void unpack_rgbaf(struct pixel *unp, void *pptr, int count);
+
+static void pack_grey8(void *pptr, struct pixel *unp, int count);
+static void pack_rgb24(void *pptr, struct pixel *unp, int count);
+static void pack_rgba32(void *pptr, struct pixel *unp, int count);
+static void pack_greyf(void *pptr, struct pixel *unp, int count);
+static void pack_rgbf(void *pptr, struct pixel *unp, int count);
+static void pack_rgbaf(void *pptr, struct pixel *unp, int count);
+
+/* XXX keep in sync with enum img_fmt at imago2.h */
+static void (*unpack[])(struct pixel*, void*, int) = {
+	unpack_grey8,
+	unpack_rgb24,
+	unpack_rgba32,
+	unpack_greyf,
+	unpack_rgbf,
+	unpack_rgbaf
+};
+
+/* XXX keep in sync with enum img_fmt at imago2.h */
+static void (*pack[])(void*, struct pixel*, int) = {
+	pack_grey8,
+	pack_rgb24,
+	pack_rgba32,
+	pack_greyf,
+	pack_rgbf,
+	pack_rgbaf
+};
+
+
+int img_convert(struct img_pixmap *img, enum img_fmt tofmt)
+{
+	struct pixel pbuf[8];
+	int bufsz = (img->width & 7) == 0 ? 8 : ((img->width & 3) == 0 ? 4 : 1);
+	int i, num_pix = img->width * img->height;
+	int num_iter = num_pix / bufsz;
+	char *sptr, *dptr;
+	struct img_pixmap nimg;
+
+	if(img_init(&nimg, tofmt) == -1) {
+		return -1;
+	}
+	if(img_set_pixels(&nimg, img->width, img->height, tofmt, 0) == -1) {
+		img_destroy(&nimg);
+		return -1;
+	}
+
+	sptr = img->pixels;
+	dptr = nimg.pixels;
+
+	for(i=0; i<num_iter; i++) {
+		unpack[img->fmt](pbuf, sptr, bufsz);
+		pack[tofmt](dptr, pbuf, bufsz);
+
+		sptr += bufsz * img->pixelsz;
+		dptr += bufsz * nimg.pixelsz;
+	}
+
+	img_copy(img, &nimg);
+	img_destroy(&nimg);
+	return 0;
+}
+
+/* the following functions *could* benefit from SIMD */
+
+static void unpack_grey8(struct pixel *unp, void *pptr, int count)
+{
+	int i;
+	unsigned char *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		unp->r = unp->g = unp->b = (float)*pix++ / 255.0;
+		unp->a = 1.0;
+		unp++;
+	}
+}
+
+static void unpack_rgb24(struct pixel *unp, void *pptr, int count)
+{
+	int i;
+	unsigned char *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		unp->r = (float)*pix++ / 255.0;
+		unp->g = (float)*pix++ / 255.0;
+		unp->b = (float)*pix++ / 255.0;
+		unp->a = 1.0;
+		unp++;
+	}
+}
+
+static void unpack_rgba32(struct pixel *unp, void *pptr, int count)
+{
+	memcpy(unp, pptr, count * sizeof *unp);
+}
+
+static void unpack_greyf(struct pixel *unp, void *pptr, int count)
+{
+	int i;
+	float *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		unp->r = unp->g = unp->b = *pix++;
+		unp->a = 1.0;
+		unp++;
+	}
+}
+
+static void unpack_rgbf(struct pixel *unp, void *pptr, int count)
+{
+	int i;
+	float *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		unp->r = *pix++;
+		unp->g = *pix++;
+		unp->b = *pix++;
+		unp->a = 1.0;
+		unp++;
+	}
+}
+
+static void unpack_rgbaf(struct pixel *unp, void *pptr, int count)
+{
+	int i;
+	float *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		unp->r = *pix++;
+		unp->g = *pix++;
+		unp->b = *pix++;
+		unp->a = *pix++;
+		unp++;
+	}
+}
+
+
+static void pack_grey8(void *pptr, struct pixel *unp, int count)
+{
+	int i;
+	unsigned char *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		int lum = (int)(255.0 * (unp->r + unp->g + unp->b) / 3.0);
+		*pix++ = CLAMP(lum, 0, 255);
+		unp++;
+	}
+}
+
+static void pack_rgb24(void *pptr, struct pixel *unp, int count)
+{
+	int i;
+	unsigned char *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		int r = (int)(unp->r * 255.0);
+		int g = (int)(unp->g * 255.0);
+		int b = (int)(unp->b * 255.0);
+
+		*pix++ = CLAMP(r, 0, 255);
+		*pix++ = CLAMP(g, 0, 255);
+		*pix++ = CLAMP(b, 0, 255);
+		unp++;
+	}
+}
+
+static void pack_rgba32(void *pptr, struct pixel *unp, int count)
+{
+	int i;
+	unsigned char *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		int r = (int)(unp->r * 255.0);
+		int g = (int)(unp->g * 255.0);
+		int b = (int)(unp->b * 255.0);
+		int a = (int)(unp->a * 255.0);
+
+		*pix++ = CLAMP(r, 0, 255);
+		*pix++ = CLAMP(g, 0, 255);
+		*pix++ = CLAMP(b, 0, 255);
+		*pix++ = CLAMP(a, 0, 255);
+		unp++;
+	}
+}
+
+static void pack_greyf(void *pptr, struct pixel *unp, int count)
+{
+	int i;
+	float *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		*pix++ = (unp->r + unp->g + unp->b) / 3.0;
+		unp++;
+	}
+}
+
+static void pack_rgbf(void *pptr, struct pixel *unp, int count)
+{
+	int i;
+	float *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		*pix++ = unp->r;
+		*pix++ = unp->g;
+		*pix++ = unp->b;
+		unp++;
+	}
+}
+
+static void pack_rgbaf(void *pptr, struct pixel *unp, int count)
+{
+	memcpy(pptr, unp, count * sizeof *unp);
+}
+
