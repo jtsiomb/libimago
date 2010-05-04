@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "ftype_module.h"
 
 static struct list_node {
@@ -95,5 +96,5 @@ struct ftype_module *img_get_module(int idx)
 	while(node && idx--) {
 		node = node->next;
 	}
-	return node;
+	return node->module;
 }

@@ -42,9 +42,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	struct img_pixmap tmpimg;
 	char *pixptr;
 
-	if(img_init(&tmpimg, img->fmt) == -1) {
-		return -1;
-	}
+	img_init(&tmpimg, img->fmt);
 	img_copy(&tmpimg, img);
 	img = &tmpimg;
 
@@ -60,15 +58,15 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	bufptr = buf;
 
 	for(i=0; i<img->width * img->height * 3; i++) {
-		if(bleft--) {
-			*bufptr++ = *pixptr++;
-		} else {
+		if(!--bleft) {
 			if(io->write(buf, sizeof buf, io->uptr) < sizeof buf) {
 				goto out;
 			}
 			bufptr = buf;
 			bleft = sizeof buf;
 		}
+
+		*bufptr++ = *pixptr++;
 	}
 	if(bufptr != buf) {
 		size_t sz = bufptr - buf;
