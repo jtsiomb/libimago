@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <imago2.h>
 
-#define INFILE	"foo.png"
-#define OUTFILE	"bar.png"
+#define INFILE	"foo.jpg"
+#define OUTFILE	"bar.jpg"
 
 int main(void)
 {
