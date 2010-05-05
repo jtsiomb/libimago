@@ -22,6 +22,7 @@ static int check(struct img_io *io)
 	long pos = io->seek(0, SEEK_CUR, io->uptr);
 
 	if(io->read(id, 2, io->uptr) < 2) {
+		io->seek(pos, SEEK_SET, io->uptr);
 		return -1;
 	}
 
