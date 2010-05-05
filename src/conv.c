@@ -51,6 +51,10 @@ int img_convert(struct img_pixmap *img, enum img_fmt tofmt)
 	char *sptr, *dptr;
 	struct img_pixmap nimg;
 
+	if(img->fmt == tofmt) {
+		return 0;	/* nothing to do */
+	}
+
 	if(img_init(&nimg, tofmt) == -1) {
 		return -1;
 	}

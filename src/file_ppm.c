@@ -1,3 +1,5 @@
+/* Portable Pixmap (PPM) module */
+
 #include <string.h>
 #include "imago2.h"
 #include "ftype_module.h"
@@ -30,53 +32,110 @@ static int check(struct img_io *io)
 	return res;
 }
 
+static int iofgetc(struct img_io *io)
+{
+	char c;
+	return io->read(&c, 1, io->uptr) < 1 ? -1 : c;
+}
+
+static char *iofgets(char *buf, int size, struct img_io *io)
+{
+	int c;
+	char *ptr = buf;
+
+	while(--size > 0 && (c = iofgetc(io)) != -1) {
+		*ptr++ = c;
+		if(c == '\n') break;
+	}
+	*ptr = 0;
+
+	return ptr == buf ? 0 : buf;
+}
+
+/* TODO: implement P3 reading */
 static int read(struct img_pixmap *img, struct img_io *io)
 {
-	return -1;
+	char buf[256];
+	struct img_pixmap img24;
+	int xsz, ysz, maxval, got_hdrlines = 1;
+
+	if(!iofgets(buf, sizeof buf, io)) {
+		return -1;
+	}
+	if(!(buf[0] == 'P' && (buf[1] == '6' || buf[1] == '3'))) {
+		return -1;
+	}
+
+	while(got_hdrlines < 3 && iofgets(buf, sizeof buf, io)) {
+		if(buf[0] == '#') continue;
+
+		switch(got_hdrlines) {
+		case 1:
+			if(sscanf(buf, "%d %d\n", &xsz, &ysz) < 2) {
+				return -1;
+			}
+			break;
+
+		case 2:
+			if(sscanf(buf, "%d\n", &maxval) < 1) {
+				return -1;
+			}
+		default:
+			break;
+		}
+		got_hdrlines++;
+	}
+
+	if(xsz < 1 || ysz < 1 || maxval != 255) {
+		return -1;
+	}
+
+	img_init(&img24, IMG_FMT_RGB24);
+	if(img_set_pixels(&img24, xsz, ysz, IMG_FMT_RGB24, 0) == -1) {
+		return -1;
+	}
+
+	if(io->read(img24.pixels, xsz * ysz * 3, io->uptr) < xsz * ysz * 3) {
+		img_destroy(&img24);
+		return -1;
+	}
+
+	if(img_convert(&img24, img->fmt) == -1) {
+		img_destroy(&img24);
+		return -1;
+	}
+	if(img_copy(img, &img24) == -1) {
+		img_destroy(&img24);
+		return -1;
+	}
+
+	img_destroy(&img24);
+	return 0;
 }
 
 static int write(struct img_pixmap *img, struct img_io *io)
 {
-	int i, bleft, res = -1;
-	char buf[256], *bufptr;
+	int sz;
+	char buf[256];
 	struct img_pixmap tmpimg;
-	char *pixptr;
 
 	img_init(&tmpimg, img->fmt);
 	img_copy(&tmpimg, img);
 	img = &tmpimg;
 
 	img_convert(img, IMG_FMT_RGB24);
-	pixptr = img->pixels;
 
 	sprintf(buf, "P6\n#written by libimago2\n%d %d\n255\n", img->width, img->height);
 	if(io->write(buf, strlen(buf), io->uptr) < strlen(buf)) {
-		goto out;
+		img_destroy(img);
+		return -1;
 	}
 
-	bleft = sizeof buf;
-	bufptr = buf;
-
-	for(i=0; i<img->width * img->height * 3; i++) {
-		if(!--bleft) {
-			if(io->write(buf, sizeof buf, io->uptr) < sizeof buf) {
-				goto out;
-			}
-			bufptr = buf;
-			bleft = sizeof buf;
-		}
-
-		*bufptr++ = *pixptr++;
+	sz = img->width * img->height * 3;
+	if(io->write(img->pixels, sz, io->uptr) < sz) {
+		img_destroy(img);
+		return -1;
 	}
-	if(bufptr != buf) {
-		size_t sz = bufptr - buf;
-		if(io->write(buf, sz, io->uptr) < sz) {
-			goto out;
-		}
-	}
-	res = 0;
-
-out:
-	img_destroy(&tmpimg);
-	return res;
+	img_destroy(img);
+	return 0;
 }
