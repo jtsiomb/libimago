@@ -1,5 +1,6 @@
 /* PNG module */
 
+#include <stdlib.h>
 #include <png.h>
 #include "imago2.h"
 #include "ftype_module.h"
@@ -7,6 +8,14 @@
 static int check_file(struct img_io *io);
 static int read_file(struct img_pixmap *img, struct img_io *io);
 static int write_file(struct img_pixmap *img, struct img_io *io);
+
+static void read_func(png_struct *png, unsigned char *data, size_t len);
+static void write_func(png_struct *png, unsigned char *data, size_t len);
+static void flush_func(png_struct *png);
+
+static int png_type_to_fmt(int color_type, int channel_bits);
+static int fmt_to_png_type(enum img_fmt fmt);
+
 
 int img_register_png(void)
 {
@@ -34,6 +43,9 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 {
 	png_struct *png;
 	png_info *info;
+	unsigned char **lineptr, *dest;
+	int i, channel_bits, color_type, ilace_type, compression, filtering, fmt;
+	unsigned long xsz, ysz;
 
 	if(!(png = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
 		return -1;
@@ -49,13 +61,167 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 
-	/* ... TODO ... */
+	png_set_read_fn(png, io, read_func);
+	png_set_sig_bytes(png, 0);
+	png_read_png(png, info, 0, 0);
 
+	png_get_IHDR(png, info, &xsz, &ysz, &channel_bits, &color_type, &ilace_type,
+			&compression, &filtering);
+	if((fmt = png_type_to_fmt(color_type, channel_bits)) == -1) {
+		png_destroy_read_struct(&png, &info, 0);
+		return -1;
+	}
+
+	img_init(img, fmt);
+	if(img_set_pixels(img, xsz, ysz, fmt, 0) == -1) {
+		png_destroy_read_struct(&png, &info, 0);
+		return -1;
+	}
+
+	lineptr = (unsigned char**)png_get_rows(png, info);
+
+	dest = img->pixels;
+	for(i=0; i<ysz; i++) {
+		memcpy(dest, lineptr[i], xsz * img->pixelsz);
+		dest += xsz * img->pixelsz;
+	}
 	png_destroy_read_struct(&png, &info, 0);
-	return -1;
+	return 0;
 }
+
 
 static int write_file(struct img_pixmap *img, struct img_io *io)
 {
+	png_struct *png;
+	png_info *info;
+	png_text txt;
+	struct img_pixmap tmpimg;
+	unsigned char **rows;
+	unsigned char *pixptr;
+	int i, coltype;
+
+	img_init(&tmpimg, 0);
+
+	if(!(png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
+		return -1;
+	}
+	if(!(info = png_create_info_struct(png))) {
+		png_destroy_write_struct(&png, 0);
+		return -1;
+	}
+
+	/* if the input image is floating-point, we need to convert it to integer */
+	if(img_is_float(img)) {
+		if(img_copy(&tmpimg, img) == -1) {
+			return -1;
+		}
+		if(img_to_integer(&tmpimg) == -1) {
+			img_destroy(&tmpimg);
+			return -1;
+		}
+		img = &tmpimg;
+	}
+
+	txt.compression = PNG_TEXT_COMPRESSION_NONE;
+	txt.key = "Software";
+	txt.text = "libimago2";
+	txt.text_length = 0;
+
+	if(setjmp(png_jmpbuf(png))) {
+		png_destroy_write_struct(&png, &info);
+		img_destroy(&tmpimg);
+		return -1;
+	}
+	png_set_write_fn(png, io, write_func, flush_func);
+
+	coltype = fmt_to_png_type(img->fmt);
+	png_set_IHDR(png, info, img->width, img->height, 8, coltype, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	png_set_text(png, info, &txt, 1);
+
+	if(!(rows = malloc(img->height * sizeof *rows))) {
+		png_destroy_write_struct(&png, &info);
+		img_destroy(&tmpimg);
+		return -1;
+	}
+
+	pixptr = img->pixels;
+	for(i=0; i<img->height; i++) {
+		rows[i] = pixptr;
+		pixptr += img->width * img->pixelsz;
+	}
+	png_set_rows(png, info, rows);
+
+	png_write_png(png, info, 0, 0);
+	png_write_end(png, info);
+	png_destroy_write_struct(&png, &info);
+
+	free(rows);
+
+	img_destroy(&tmpimg);
+	return 0;
+}
+
+static void read_func(png_struct *png, unsigned char *data, size_t len)
+{
+	struct img_io *io = (struct img_io*)png_get_io_ptr(png);
+
+	if(io->read(data, len, io->uptr) == -1) {
+		longjmp(png_jmpbuf(png), 1);
+	}
+}
+
+static void write_func(png_struct *png, unsigned char *data, size_t len)
+{
+	struct img_io *io = (struct img_io*)png_get_io_ptr(png);
+
+	if(io->write(data, len, io->uptr) == -1) {
+		longjmp(png_jmpbuf(png), 1);
+	}
+}
+
+static void flush_func(png_struct *png)
+{
+	/* XXX does it matter that we can't flush? */
+}
+
+static int png_type_to_fmt(int color_type, int channel_bits)
+{
+	/* we don't support non-8bit-per-channel images yet */
+	if(channel_bits > 8) {
+		return -1;
+	}
+
+	switch(color_type) {
+	case PNG_COLOR_TYPE_RGB:
+		return IMG_FMT_RGB24;
+
+	case PNG_COLOR_TYPE_RGB_ALPHA:
+		return IMG_FMT_RGBA32;
+
+	case PNG_COLOR_TYPE_GRAY:
+		return IMG_FMT_GREY8;
+
+	default:
+		break;
+	}
+	return -1;
+}
+
+static int fmt_to_png_type(enum img_fmt fmt)
+{
+	switch(fmt) {
+	case IMG_FMT_GREY8:
+		return PNG_COLOR_TYPE_GRAY;
+
+	case IMG_FMT_RGB24:
+		return PNG_COLOR_TYPE_RGB;
+
+	case IMG_FMT_RGBA32:
+		return PNG_COLOR_TYPE_RGBA;
+
+	default:
+		break;
+	}
 	return -1;
 }

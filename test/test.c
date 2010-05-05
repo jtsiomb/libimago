@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <imago2.h>
 
+#define INFILE	"foo.png"
+#define OUTFILE	"bar.png"
+
 int main(void)
 {
 	int i, j, xsz = 512, ysz = 512;
@@ -8,10 +11,10 @@ int main(void)
 
 	img_init(&img, IMG_FMT_RGB24);
 
-	if(img_load(&img, "foo.ppm") == -1) {
+	if(img_load(&img, INFILE) == -1) {
 		unsigned char *pix;
 
-		fprintf(stderr, "failed to load image: foo.ppm, generating instead\n");
+		fprintf(stderr, "failed to load image: " INFILE ", generating instead\n");
 
 		if(img_set_pixels(&img, xsz, ysz, IMG_FMT_RGB24, 0) == -1) {
 			perror("wtf");
@@ -30,8 +33,8 @@ int main(void)
 		}
 	}
 
-	if(img_save(&img, "bar.ppm") == -1) {
-		fprintf(stderr, "failed to save file foo.ppm\n");
+	if(img_save(&img, OUTFILE) == -1) {
+		fprintf(stderr, "failed to save file " OUTFILE "\n");
 		return 1;
 	}
 

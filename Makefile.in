@@ -53,3 +53,17 @@ clean:
 .PHONY: distclean
 distclean:
 	rm -f $(obj) $(lib_so) $(lib_a) Makefile src/modules.c
+
+.PHONY: install
+install: $(lib_so) $(lib_a)
+	test -d $(PREFIX)/include || mkdir -p $(PREFIX)/include
+	test -d $(PREFIX)/lib || mkdir -p $(PREFIX)/lib
+	cp src/imago2.h $(PREFIX)/include/imago2.h
+	cp $(lib_so) $(PREFIX)/lib/$(lib_so)
+	cp $(lib_a) $(PREFIX)/lib/$(lib_a)
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(PREFIX)/include/imago2.h
+	rm -f $(PREFIX)/lib/$(lib_so)
+	rm -f $(PREFIX)/lib/$(lib_a)

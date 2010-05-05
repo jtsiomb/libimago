@@ -74,6 +74,11 @@ int img_write(struct img_pixmap *img, struct img_io *io);
 /* TODO */
 
 int img_convert(struct img_pixmap *img, enum img_fmt tofmt);
+int img_to_float(struct img_pixmap *img);
+int img_to_integer(struct img_pixmap *img);
+
+int img_is_float(struct img_pixmap *img);
+int img_has_alpha(struct img_pixmap *img);
 
 /* io-struct functions */
 void img_io_set_user_data(struct img_io *io, void *uptr);

@@ -95,11 +95,16 @@ void *img_load_pixels(const char *fname, int *xsz, int *ysz, enum img_fmt fmt)
 {
 	struct img_pixmap img;
 
-	if(img_init(&img, fmt) == -1) {
-		return 0;
-	}
+	img_init(&img, fmt);
+
 	if(img_load(&img, fname) == -1) {
 		return 0;
+	}
+	if(img.fmt != fmt) {
+		if(img_convert(&img, fmt) == -1) {
+			img_destroy(&img);
+			return 0;
+		}
 	}
 
 	*xsz = img.width;
@@ -188,6 +193,7 @@ int img_write(struct img_pixmap *img, struct img_io *io)
 
 	if(!img->name || !(mod = img_guess_format(img->name))) {
 		/* TODO throw some sort of warning? */
+		/* TODO implement some sort of module priority or let the user specify? */
 		if(!(mod = img_get_module(0))) {
 			return -1;
 		}
@@ -195,6 +201,85 @@ int img_write(struct img_pixmap *img, struct img_io *io)
 
 	return mod->write(img, io);
 }
+
+int img_to_float(struct img_pixmap *img)
+{
+	enum img_fmt targ_fmt;
+
+	switch(img->fmt) {
+	case IMG_FMT_GREY8:
+		targ_fmt = IMG_FMT_GREYF;
+		break;
+
+	case IMG_FMT_RGB24:
+		targ_fmt = IMG_FMT_RGBF;
+		break;
+
+	case IMG_FMT_RGBA32:
+		targ_fmt = IMG_FMT_RGBAF;
+		break;
+
+	default:
+		return 0;	/* already float */
+	}
+
+	return img_convert(img, targ_fmt);
+}
+
+int img_to_integer(struct img_pixmap *img)
+{
+	enum img_fmt targ_fmt;
+
+	switch(img->fmt) {
+	case IMG_FMT_GREYF:
+		targ_fmt = IMG_FMT_GREY8;
+		break;
+
+	case IMG_FMT_RGBF:
+		targ_fmt = IMG_FMT_RGB24;
+		break;
+
+	case IMG_FMT_RGBAF:
+		targ_fmt = IMG_FMT_RGBA32;
+		break;
+
+	default:
+		return 0;	/* already integer */
+	}
+
+	return img_convert(img, targ_fmt);
+}
+
+int img_is_float(struct img_pixmap *img)
+{
+	return img->fmt >= IMG_FMT_GREYF && img->fmt <= IMG_FMT_RGBAF;
+}
+
+int img_has_alpha(struct img_pixmap *img)
+{
+	return img->fmt >= IMG_FMT_GREY8 && img->fmt <= IMG_FMT_RGBA32;
+}
+
+void img_io_set_user_data(struct img_io *io, void *uptr)
+{
+	io->uptr = uptr;
+}
+
+void img_io_set_read_func(struct img_io *io, size_t (*read)(void*, size_t, void*))
+{
+	io->read = read;
+}
+
+void img_io_set_write_func(struct img_io *io, size_t (*write)(void*, size_t, void*))
+{
+	io->write = write;
+}
+
+void img_io_set_seek_func(struct img_io *io, long (*seek)(long, int, void*))
+{
+	io->seek = seek;
+}
+
 
 static int pixel_size(enum img_fmt fmt)
 {

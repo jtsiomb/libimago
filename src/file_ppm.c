@@ -57,7 +57,6 @@ static char *iofgets(char *buf, int size, struct img_io *io)
 static int read(struct img_pixmap *img, struct img_io *io)
 {
 	char buf[256];
-	struct img_pixmap img24;
 	int xsz, ysz, maxval, got_hdrlines = 1;
 
 	if(!iofgets(buf, sizeof buf, io)) {
@@ -91,26 +90,13 @@ static int read(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 
-	img_init(&img24, IMG_FMT_RGB24);
-	if(img_set_pixels(&img24, xsz, ysz, IMG_FMT_RGB24, 0) == -1) {
+	if(img_set_pixels(img, xsz, ysz, IMG_FMT_RGB24, 0) == -1) {
 		return -1;
 	}
 
-	if(io->read(img24.pixels, xsz * ysz * 3, io->uptr) < xsz * ysz * 3) {
-		img_destroy(&img24);
+	if(io->read(img->pixels, xsz * ysz * 3, io->uptr) < xsz * ysz * 3) {
 		return -1;
 	}
-
-	if(img_convert(&img24, img->fmt) == -1) {
-		img_destroy(&img24);
-		return -1;
-	}
-	if(img_copy(img, &img24) == -1) {
-		img_destroy(&img24);
-		return -1;
-	}
-
-	img_destroy(&img24);
 	return 0;
 }
 
@@ -121,22 +107,29 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	struct img_pixmap tmpimg;
 
 	img_init(&tmpimg, img->fmt);
-	img_copy(&tmpimg, img);
-	img = &tmpimg;
 
-	img_convert(img, IMG_FMT_RGB24);
+	if(img->fmt != IMG_FMT_RGB24) {
+		if(img_copy(&tmpimg, img) == -1) {
+			return -1;
+		}
+		if(img_convert(&tmpimg, IMG_FMT_RGB24) == -1) {
+			return -1;
+		}
+		img = &tmpimg;
+	}
 
 	sprintf(buf, "P6\n#written by libimago2\n%d %d\n255\n", img->width, img->height);
 	if(io->write(buf, strlen(buf), io->uptr) < strlen(buf)) {
-		img_destroy(img);
+		img_destroy(&tmpimg);
 		return -1;
 	}
 
 	sz = img->width * img->height * 3;
 	if(io->write(img->pixels, sz, io->uptr) < sz) {
-		img_destroy(img);
+		img_destroy(&tmpimg);
 		return -1;
 	}
-	img_destroy(img);
+
+	img_destroy(&tmpimg);
 	return 0;
 }
