@@ -55,9 +55,7 @@ int img_convert(struct img_pixmap *img, enum img_fmt tofmt)
 		return 0;	/* nothing to do */
 	}
 
-	if(img_init(&nimg, tofmt) == -1) {
-		return -1;
-	}
+	img_init(&nimg);
 	if(img_set_pixels(&nimg, img->width, img->height, tofmt, 0) == -1) {
 		img_destroy(&nimg);
 		return -1;

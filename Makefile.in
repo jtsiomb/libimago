@@ -6,7 +6,7 @@ ccsrc = $(wildcard src/*.cc)
 obj = $(csrc:.c=.o) $(ccsrc:.cc=.o)
 lib_a = libimago.a
 
-somajor = 1
+somajor = 2
 sominor = 0
 
 incdir = -I$(PREFIX)/include

@@ -72,7 +72,6 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 
-	img_init(img, fmt);
 	if(img_set_pixels(img, xsz, ysz, fmt, 0) == -1) {
 		png_destroy_read_struct(&png, &info, 0);
 		return -1;
@@ -100,7 +99,7 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	unsigned char *pixptr;
 	int i, coltype;
 
-	img_init(&tmpimg, 0);
+	img_init(&tmpimg);
 
 	if(!(png = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
 		return -1;

@@ -106,7 +106,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	char buf[256];
 	struct img_pixmap tmpimg;
 
-	img_init(&tmpimg, img->fmt);
+	img_init(&tmpimg);
 
 	if(img->fmt != IMG_FMT_RGB24) {
 		if(img_copy(&tmpimg, img) == -1) {

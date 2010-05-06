@@ -3,9 +3,9 @@ bin = test
 
 CC = gcc
 CFLAGS = -pedantic -Wall -g -I../src
-LDFLAGS = ../libimago.so.1.0
+LDFLAGS = ../libimago.so.2.0
 
-$(bin): $(obj) ../libimago.so.1.0
+$(bin): $(obj) ../libimago.so.2.0
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
 .PHONY: clean

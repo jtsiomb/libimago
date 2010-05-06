@@ -9,7 +9,7 @@ int main(void)
 	int i, j, xsz = 512, ysz = 512;
 	struct img_pixmap img;
 
-	img_init(&img, IMG_FMT_RGB24);
+	img_init(&img);
 
 	if(img_load(&img, INFILE) == -1) {
 		unsigned char *pix;

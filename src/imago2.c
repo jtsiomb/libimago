@@ -10,37 +10,32 @@ static size_t def_write(void *buf, size_t bytes, void *uptr);
 static long def_seek(long offset, int whence, void *uptr);
 
 
-int img_init(struct img_pixmap *img, enum img_fmt fmt)
+void img_init(struct img_pixmap *img)
 {
 	img->pixels = 0;
 	img->width = img->height = 0;
-	img->fmt = fmt;
-	img->pixelsz = pixel_size(fmt);
+	img->fmt = IMG_FMT_RGBA32;
+	img->pixelsz = pixel_size(img->fmt);
 	img->name = 0;
-	return 0;
 }
 
 
-int img_destroy(struct img_pixmap *img)
+void img_destroy(struct img_pixmap *img)
 {
 	free(img->pixels);
 	img->pixels = 0;	/* just in case... */
 	img->width = img->height = 0xbadbeef;
 	free(img->name);
-	return 0;
 }
 
-struct img_pixmap *img_create(enum img_fmt fmt)
+struct img_pixmap *img_create(void)
 {
 	struct img_pixmap *p;
 
 	if(!(p = malloc(sizeof *p))) {
 		return 0;
 	}
-	if(img_init(p, fmt) == -1) {
-		free(p);
-		return 0;
-	}
+	img_init(p);
 	return p;
 }
 
@@ -59,6 +54,15 @@ int img_set_name(struct img_pixmap *img, const char *name)
 	}
 	strcpy(tmp, name);
 	img->name = tmp;
+	return 0;
+}
+
+int img_set_format(struct img_pixmap *img, enum img_fmt fmt)
+{
+	if(img->pixels) {
+		return img_convert(img, fmt);
+	}
+	img->fmt = fmt;
 	return 0;
 }
 
@@ -95,7 +99,7 @@ void *img_load_pixels(const char *fname, int *xsz, int *ysz, enum img_fmt fmt)
 {
 	struct img_pixmap img;
 
-	img_init(&img, fmt);
+	img_init(&img);
 
 	if(img_load(&img, fname) == -1) {
 		return 0;
@@ -116,9 +120,8 @@ int img_save_pixels(const char *fname, void *pix, int xsz, int ysz, enum img_fmt
 {
 	struct img_pixmap img;
 
-	if(img_init(&img, fmt) == -1) {
-		return 0;
-	}
+	img_init(&img);
+	img.fmt = fmt;
 	img.name = (char*)fname;
 	img.width = xsz;
 	img.height = ysz;
