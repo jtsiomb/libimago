@@ -1,7 +1,22 @@
-/* jpeg module.
- * Adapted from the jpeg code of libimago v1, originally written by
- * Michael Georgoulopoulos.
- */
+/*
+libimago - a multi-format image file input/output library.
+Copyright (C) 2010 John Tsiombikas <nuclear@member.fsf.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* -- JPEG module -- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,12 +94,13 @@ static int check(struct img_io *io)
 
 static int read(struct img_pixmap *img, struct img_io *io)
 {
+	int i;
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	struct src_mgr src;
-	unsigned char *pixptr;
+	unsigned char **scanlines;
 
-	cinfo.err = jpeg_std_error(&jerr);	/* XXX is this stderr? change... */
+	cinfo.err = jpeg_std_error(&jerr);	/* XXX change... */
 	jpeg_create_decompress(&cinfo);
 
 	src.pub.init_source = init_source;
@@ -104,21 +120,22 @@ static int read(struct img_pixmap *img, struct img_io *io)
 		jpeg_destroy_decompress(&cinfo);
 		return -1;
 	}
-	pixptr = img->pixels;
+
+	if(!(scanlines = malloc(img->height * sizeof *scanlines))) {
+		jpeg_destroy_decompress(&cinfo);
+		return -1;
+	}
+	scanlines[0] = img->pixels;
+	for(i=0; i<img->height; i++) {
+		scanlines[i] = scanlines[i - 1] + img->width * img->pixelsz;
+	}
 
 	jpeg_start_decompress(&cinfo);
-	while(cinfo.output_scanline < cinfo.output_height) {
-		JSAMPLE *tmp = (JSAMPLE*)pixptr;
-		pixptr += img->width * img->pixelsz;
-
-		jpeg_read_scanlines(&cinfo, &tmp, 1);
-		if(cinfo.output_scanline == 0) {
-			continue;
-		}
-	}
+	jpeg_read_scanlines(&cinfo, scanlines, img->height);
 	jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 
+	free(scanlines);
 	return 0;
 }
 
@@ -148,8 +165,9 @@ static int write(struct img_pixmap *img, struct img_io *io)
 		img_destroy(&tmpimg);
 		return -1;
 	}
+	scanlines[0] = img->pixels;
 	for(i=0; i<img->height; i++) {
-		scanlines[i] = (unsigned char*)img->pixels + i * img->width * img->pixelsz;
+		scanlines[i] = scanlines[i - 1] + img->width * img->pixelsz;
 	}
 
 	cinfo.err = jpeg_std_error(&jerr);	/* XXX */
