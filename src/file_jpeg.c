@@ -126,7 +126,7 @@ static int read(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 	scanlines[0] = img->pixels;
-	for(i=0; i<img->height; i++) {
+	for(i=1; i<img->height; i++) {
 		scanlines[i] = scanlines[i - 1] + img->width * img->pixelsz;
 	}
 
