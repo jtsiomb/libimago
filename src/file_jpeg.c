@@ -94,7 +94,7 @@ static int check(struct img_io *io)
 
 static int read(struct img_pixmap *img, struct img_io *io)
 {
-	int i;
+	int i, nlines = 0;
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	struct src_mgr src;
@@ -131,7 +131,10 @@ static int read(struct img_pixmap *img, struct img_io *io)
 	}
 
 	jpeg_start_decompress(&cinfo);
-	jpeg_read_scanlines(&cinfo, scanlines, img->height);
+	while(nlines < img->height) {
+		int res = jpeg_read_scanlines(&cinfo, scanlines + nlines, img->height - nlines);
+		nlines += res;
+	}
 	jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 
