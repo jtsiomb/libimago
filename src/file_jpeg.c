@@ -144,7 +144,7 @@ static int read(struct img_pixmap *img, struct img_io *io)
 
 static int write(struct img_pixmap *img, struct img_io *io)
 {
-	int i;
+	int i, nlines = 0;
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	struct dst_mgr dest;
@@ -169,7 +169,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 	scanlines[0] = img->pixels;
-	for(i=0; i<img->height; i++) {
+	for(i=1; i<img->height; i++) {
 		scanlines[i] = scanlines[i - 1] + img->width * img->pixelsz;
 	}
 
@@ -190,7 +190,10 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	jpeg_set_defaults(&cinfo);
 
 	jpeg_start_compress(&cinfo, 1);
-	jpeg_write_scanlines(&cinfo, scanlines, img->height);
+	while(nlines < img->height) {
+		int res = jpeg_write_scanlines(&cinfo, scanlines + nlines, img->height - nlines);
+		nlines += res;
+	}
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
 
