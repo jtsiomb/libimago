@@ -21,6 +21,7 @@ ifeq ($(shell uname -s), Darwin)
 else
 	soname = libimago.so.$(somajor)
 	lib_so = $(soname).$(sominor)
+	solink = libimago.so
 	shared = -shared -Wl,-soname,$(soname)
 endif
 
@@ -61,9 +62,11 @@ install: $(lib_so) $(lib_a)
 	cp src/imago2.h $(PREFIX)/include/imago2.h
 	cp $(lib_so) $(PREFIX)/lib/$(lib_so)
 	cp $(lib_a) $(PREFIX)/lib/$(lib_a)
+	[ -n "$(solink)" ] && cd $(PREFIX)/lib && rm -f $(solink) && ln -s $(lib_so) $(solink)
 
 .PHONY: uninstall
 uninstall:
 	rm -f $(PREFIX)/include/imago2.h
 	rm -f $(PREFIX)/lib/$(lib_so)
 	rm -f $(PREFIX)/lib/$(lib_a)
+	rm -f $(PREFIX)/lib/$(solink)
