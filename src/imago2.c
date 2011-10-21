@@ -278,7 +278,10 @@ int img_is_float(struct img_pixmap *img)
 
 int img_has_alpha(struct img_pixmap *img)
 {
-	return img->fmt >= IMG_FMT_GREY8 && img->fmt <= IMG_FMT_RGBA32;
+	if(img->fmt == IMG_FMT_RGBA32 || img->fmt == IMG_FMT_RGBAF) {
+		return 1;
+	}
+	return 0;
 }
 
 void img_io_set_user_data(struct img_io *io, void *uptr)
