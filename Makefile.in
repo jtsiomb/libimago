@@ -62,7 +62,11 @@ install: $(lib_so) $(lib_a)
 	cp src/imago2.h $(PREFIX)/include/imago2.h
 	cp $(lib_so) $(PREFIX)/lib/$(lib_so)
 	cp $(lib_a) $(PREFIX)/lib/$(lib_a)
-	[ -n "$(solink)" ] && cd $(PREFIX)/lib && rm -f $(solink) && ln -s $(lib_so) $(solink)
+	[ -n "$(solink)" ] \
+		&& cd $(PREFIX)/lib \
+		&& rm -f $(solink) \
+		&& ln -s $(lib_so) $(solink) \
+		|| true
 
 .PHONY: uninstall
 uninstall:
