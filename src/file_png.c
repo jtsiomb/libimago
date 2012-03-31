@@ -63,7 +63,7 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 	png_info *info;
 	unsigned char **lineptr, *dest;
 	int i, channel_bits, color_type, ilace_type, compression, filtering, fmt;
-	unsigned long xsz, ysz;
+	unsigned int xsz, ysz;
 
 	if(!(png = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
 		return -1;
