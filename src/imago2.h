@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2012 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -140,6 +140,21 @@ int img_to_integer(struct img_pixmap *img);
 int img_is_float(struct img_pixmap *img);
 /* Returns non-zero (true) if the supplied image has an alpha channel */
 int img_has_alpha(struct img_pixmap *img);
+
+
+/* OpenGL helper functions */
+
+/* Returns the equivalent OpenGL "format" as expected by the 7th argument of glTexImage2D */
+unsigned int img_fmt_glfmt(enum img_fmt fmt);
+/* Returns the equivalent OpenGL "type" as expected by the 8th argument of glTexImage2D */
+unsigned int img_fmt_gltype(enum img_fmt fmt);
+/* Returns the equivalent OpenGL "internal format" as expected by the 3rd argument of glTexImage2D */
+unsigned int img_fmt_glintfmt(enum img_fmt fmt);
+
+/* Same as above, based on the pixel format of the supplied image */
+unsigned int img_glfmt(struct img_pixmap *img);
+unsigned int img_gltype(struct img_pixmap *img);
+unsigned int img_glintfmt(struct img_pixmap *img);
 
 
 /* These functions can be used to fill an img_io struct before it's passed to

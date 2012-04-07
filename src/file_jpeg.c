@@ -100,6 +100,8 @@ static int read(struct img_pixmap *img, struct img_io *io)
 	struct src_mgr src;
 	unsigned char **scanlines;
 
+	io->seek(0, SEEK_CUR, io->uptr);
+
 	cinfo.err = jpeg_std_error(&jerr);	/* XXX change... */
 	jpeg_create_decompress(&cinfo);
 
