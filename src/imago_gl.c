@@ -2,16 +2,16 @@
 
 
 /* to avoid dependency to OpenGL, I'll define all the relevant GL macros manually */
-#define GL_UNSIGNED_BYTE	0x1401
-#define GL_FLOAT			0x1406
+#define GL_UNSIGNED_BYTE		0x1401
+#define GL_FLOAT				0x1406
 
-#define GL_LUMINANCE		0x1909
-#define GL_RGB				0x1907
-#define GL_RGBA				0x1908
+#define GL_LUMINANCE			0x1909
+#define GL_RGB					0x1907
+#define GL_RGBA					0x1908
 
-#define GL_RGBA32F			0x8814
-#define GL_RGB32F			0x8815
-#define GL_LUMINANCE32F		0x8818
+#define GL_RGBA32F				0x8814
+#define GL_RGB32F				0x8815
+#define GL_LUMINANCE32F			0x8818
 
 #define GL_TEXTURE_2D			0x0de1
 #define GL_TEXTURE_WRAP_S		0x2802
@@ -136,6 +136,38 @@ unsigned int img_gltexture(struct img_pixmap *img)
 	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	gl_tex_image2d(GL_TEXTURE_2D, 0, intfmt, img->width, img->height, 0, fmt, type, img->pixels);
+	return tex;
+}
+
+unsigned int img_gltexture_read_file(FILE *fp)
+{
+	struct img_pixmap img;
+	unsigned int tex;
+
+	img_init(&img);
+	if(img_read_file(&img, fp) == -1) {
+		img_destroy(&img);
+		return 0;
+	}
+
+	tex = img_gltexture(&img);
+	img_destroy(&img);
+	return tex;
+}
+
+unsigned int img_gltexture_read(struct img_io *io)
+{
+	struct img_pixmap img;
+	unsigned int tex;
+
+	img_init(&img);
+	if(img_read(&img, io) == -1) {
+		img_destroy(&img);
+		return 0;
+	}
+
+	tex = img_gltexture(&img);
+	img_destroy(&img);
 	return tex;
 }
 
