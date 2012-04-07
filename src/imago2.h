@@ -156,6 +156,13 @@ unsigned int img_glfmt(struct img_pixmap *img);
 unsigned int img_gltype(struct img_pixmap *img);
 unsigned int img_glintfmt(struct img_pixmap *img);
 
+/* Creates an OpenGL texture from the image, and returns the texture id, or 0 for failure */
+unsigned int img_gltexture(struct img_pixmap *img);
+
+/* Load an image and create an OpenGL texture out of it */
+unsigned int img_gltexture_load(const char *fname);
+unsigned int img_gltexture_read_file(FILE *fp);
+unsigned int img_gltexture_read(struct img_io *io);
 
 /* These functions can be used to fill an img_io struct before it's passed to
  * one of the user-defined i/o image reading/writing functions (img_read/img_write).
