@@ -29,11 +29,15 @@ typedef int GLsizei;
 typedef void GLvoid;
 
 /* for the same reason I'll load GL functions dynamically */
-static void (*gl_gen_textures)(GLsizei, GLuint*);
-/*static void (*gl_delete_textures)(GLsizei, const GLuint*);*/
-static void (*gl_bind_texture)(GLenum, GLuint);
-static void (*gl_tex_parameteri)(GLenum, GLenum, GLint);
-static void (*gl_tex_image2d)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*);
+typedef void (*gl_gen_textures_func)(GLsizei, GLuint*);
+typedef void (*gl_bind_texture_func)(GLenum, GLuint);
+typedef void (*gl_tex_parameteri_func)(GLenum, GLenum, GLint);
+typedef void (*gl_tex_image2d_func)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*);
+
+static gl_gen_textures_func gl_gen_textures;
+static gl_bind_texture_func gl_bind_texture;
+static gl_tex_parameteri_func gl_tex_parameteri;
+static gl_tex_image2d_func gl_tex_image2d;
 
 static int load_glfunc(void);
 
@@ -181,18 +185,18 @@ unsigned int img_gltexture_read(struct img_io *io)
 static int load_glfunc(void)
 {
 #if defined(__unix__) || defined(__APPLE__)
-	gl_gen_textures = dlsym(0, "glGenTextures");
-	gl_bind_texture = dlsym(0, "glBindTexture");
-	gl_tex_parameteri = dlsym(0, "glTexParameteri");
-	gl_tex_image2d = dlsym(0, "glTexImage2D");
+	gl_gen_textures = (gl_gen_textures_func)dlsym(0, "glGenTextures");
+	gl_bind_texture = (gl_bind_texture_func)dlsym(0, "glBindTexture");
+	gl_tex_parameteri = (gl_tex_parameteri_func)dlsym(0, "glTexParameteri");
+	gl_tex_image2d = (gl_tex_image2d_func)dlsym(0, "glTexImage2D");
 #endif
 
 #ifdef WIN32
-	HANDLE handle = GetModuleHandle(0);
-	gl_gen_textures = GetProcAddress(handle, "glGenTextures");
-	gl_bind_texture = GetProcAddress(handle, "glBindTexture");
-	gl_tex_parameteri = GetProcAddress(handle, "glTexParameteri");
-	gl_tex_image2d = GetProcAddress(handle, "glTexImage2D");
+	HMODULE handle = GetModuleHandle(0);
+	gl_gen_textures = (gl_gen_textures_func)GetProcAddress(handle, "glGenTextures");
+	gl_bind_texture = (gl_bind_texture_func)GetProcAddress(handle, "glBindTexture");
+	gl_tex_parameteri = (gl_tex_parameteri_func)GetProcAddress(handle, "glTexParameteri");
+	gl_tex_image2d = (gl_tex_image2d_func)GetProcAddress(handle, "glTexImage2D");
 #endif
 
 	return (gl_gen_textures && gl_bind_texture && gl_tex_parameteri && gl_tex_image2d) ? 0 : -1;
