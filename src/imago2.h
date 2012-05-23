@@ -142,6 +142,21 @@ int img_is_float(struct img_pixmap *img);
 int img_has_alpha(struct img_pixmap *img);
 
 
+/* don't use these for anything performance-critical */
+void img_setpixel(struct img_pixmap *img, int x, int y, void *pixel);
+void img_getpixel(struct img_pixmap *img, int x, int y, void *pixel);
+
+void img_setpixel1i(struct img_pixmap *img, int x, int y, int pix);
+void img_setpixel1f(struct img_pixmap *img, int x, int y, float pix);
+void img_setpixel4i(struct img_pixmap *img, int x, int y, int r, int g, int b, int a);
+void img_setpixel4f(struct img_pixmap *img, int x, int y, float r, float g, float b, float a);
+
+void img_getpixel1i(struct img_pixmap *img, int x, int y, int *pix);
+void img_getpixel1f(struct img_pixmap *img, int x, int y, float *pix);
+void img_getpixel4i(struct img_pixmap *img, int x, int y, int *r, int *g, int *b, int *a);
+void img_getpixel4f(struct img_pixmap *img, int x, int y, float *r, float *g, float *b, float *a);
+
+
 /* OpenGL helper functions */
 
 /* Returns the equivalent OpenGL "format" as expected by the 7th argument of glTexImage2D */

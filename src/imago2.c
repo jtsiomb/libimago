@@ -284,6 +284,109 @@ int img_has_alpha(struct img_pixmap *img)
 	return 0;
 }
 
+
+void img_setpixel(struct img_pixmap *img, int x, int y, void *pixel)
+{
+	char *dest = (char*)img->pixels + (y * img->width + x) * img->pixelsz;
+	memcpy(dest, pixel, img->pixelsz);
+}
+
+void img_getpixel(struct img_pixmap *img, int x, int y, void *pixel)
+{
+	char *dest = (char*)img->pixels + (y * img->width + x) * img->pixelsz;
+	memcpy(pixel, dest, img->pixelsz);
+}
+
+void img_setpixel1i(struct img_pixmap *img, int x, int y, int pix)
+{
+	img_setpixel4i(img, x, y, pix, pix, pix, pix);
+}
+
+void img_setpixel1f(struct img_pixmap *img, int x, int y, float pix)
+{
+	img_setpixel4f(img, x, y, pix, pix, pix, pix);
+}
+
+void img_setpixel4i(struct img_pixmap *img, int x, int y, int r, int g, int b, int a)
+{
+	if(img_is_float(img)) {
+		img_setpixel4f(img, x, y, r / 255.0, g / 255.0, b / 255.0, a / 255.0);
+	} else {
+		unsigned char pixel[4];
+		pixel[0] = r;
+		pixel[1] = g;
+		pixel[2] = b;
+		pixel[3] = a;
+
+		img_setpixel(img, x, y, pixel);
+	}
+}
+
+void img_setpixel4f(struct img_pixmap *img, int x, int y, float r, float g, float b, float a)
+{
+	if(img_is_float(img)) {
+		float pixel[4];
+		pixel[0] = r;
+		pixel[1] = g;
+		pixel[2] = b;
+		pixel[3] = a;
+
+		img_setpixel(img, x, y, pixel);
+	} else {
+		img_setpixel4i(img, x, y, (int)(r * 255.0), (int)(g * 255.0), (int)(b * 255.0), (int)(a * 255.0));
+	}
+}
+
+void img_getpixel1i(struct img_pixmap *img, int x, int y, int *pix)
+{
+	int junk[3];
+	img_getpixel4i(img, x, y, pix, junk, junk + 1, junk + 2);
+}
+
+void img_getpixel1f(struct img_pixmap *img, int x, int y, float *pix)
+{
+	float junk[3];
+	img_getpixel4f(img, x, y, pix, junk, junk + 1, junk + 2);
+}
+
+void img_getpixel4i(struct img_pixmap *img, int x, int y, int *r, int *g, int *b, int *a)
+{
+	if(img_is_float(img)) {
+		float pixel[4] = {0, 0, 0, 0};
+		img_getpixel(img, x, y, pixel);
+		*r = pixel[0] * 255.0;
+		*g = pixel[1] * 255.0;
+		*b = pixel[2] * 255.0;
+		*a = pixel[3] * 255.0;
+	} else {
+		unsigned char pixel[4];
+		img_getpixel(img, x, y, pixel);
+		*r = pixel[0];
+		*g = pixel[1];
+		*b = pixel[2];
+		*a = pixel[3];
+	}
+}
+
+void img_getpixel4f(struct img_pixmap *img, int x, int y, float *r, float *g, float *b, float *a)
+{
+	if(img_is_float(img)) {
+		float pixel[4] = {0, 0, 0, 0};
+		img_getpixel(img, x, y, pixel);
+		*r = pixel[0];
+		*g = pixel[1];
+		*b = pixel[2];
+		*a = pixel[3];
+	} else {
+		unsigned char pixel[4];
+		img_getpixel(img, x, y, pixel);
+		*r = pixel[0] / 255.0;
+		*g = pixel[1] / 255.0;
+		*b = pixel[2] / 255.0;
+		*a = pixel[3] / 255.0;
+	}
+}
+
 void img_io_set_user_data(struct img_io *io, void *uptr)
 {
 	io->uptr = uptr;
