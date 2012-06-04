@@ -36,7 +36,7 @@ CXX = g++
 AR = ar
 CFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
 CXXFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
-LDFLAGS = $(libdir) -lpng -lz -ljpeg
+LDFLAGS = $(libdir) -lpng -lz -ljpeg -ldl
 
 .PHONY: all
 all: $(lib_a) $(lib_so)
