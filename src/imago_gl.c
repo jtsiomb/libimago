@@ -143,6 +143,22 @@ unsigned int img_gltexture(struct img_pixmap *img)
 	return tex;
 }
 
+unsigned int img_gltexture_load(const char *fname)
+{
+	struct img_pixmap img;
+	unsigned int tex;
+
+	img_init(&img);
+	if(img_load(&img, fname) == -1) {
+		img_destroy(&img);
+		return 0;
+	}
+
+	tex = img_gltexture(&img);
+	img_destroy(&img);
+	return tex;
+}
+
 unsigned int img_gltexture_read_file(FILE *fp)
 {
 	struct img_pixmap img;
