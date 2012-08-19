@@ -192,6 +192,10 @@ unsigned int img_gltexture_read(struct img_io *io)
 }
 
 #if defined(__unix__) || defined(__APPLE__)
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+
 #include <dlfcn.h>
 #endif
 #ifdef WIN32
@@ -201,10 +205,10 @@ unsigned int img_gltexture_read(struct img_io *io)
 static int load_glfunc(void)
 {
 #if defined(__unix__) || defined(__APPLE__)
-	gl_gen_textures = (gl_gen_textures_func)dlsym(0, "glGenTextures");
-	gl_bind_texture = (gl_bind_texture_func)dlsym(0, "glBindTexture");
-	gl_tex_parameteri = (gl_tex_parameteri_func)dlsym(0, "glTexParameteri");
-	gl_tex_image2d = (gl_tex_image2d_func)dlsym(0, "glTexImage2D");
+	gl_gen_textures = (gl_gen_textures_func)dlsym(RTLD_DEFAULT, "glGenTextures");
+	gl_bind_texture = (gl_bind_texture_func)dlsym(RTLD_DEFAULT, "glBindTexture");
+	gl_tex_parameteri = (gl_tex_parameteri_func)dlsym(RTLD_DEFAULT, "glTexParameteri");
+	gl_tex_image2d = (gl_tex_image2d_func)dlsym(RTLD_DEFAULT, "glTexImage2D");
 #endif
 
 #ifdef WIN32
