@@ -2,8 +2,7 @@ dbg = -g
 opt =
 
 csrc = $(wildcard src/*.c)
-ccsrc = $(wildcard src/*.cc)
-obj = $(csrc:.c=.o) $(ccsrc:.cc=.o)
+obj = $(csrc:.c=.o)
 lib_a = libimago.a
 
 somajor = 2
@@ -32,10 +31,8 @@ ifeq ($(shell uname -s), IRIX)
 endif
 
 CC = gcc
-CXX = g++
 AR = ar
 CFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
-CXXFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
 LDFLAGS = $(libdir) -lpng -lz -ljpeg -ldl
 
 .PHONY: all
@@ -45,7 +42,7 @@ $(lib_a): $(obj)
 	$(AR) rcs $@ $^
 
 $(lib_so): $(obj)
-	$(CXX) $(CXXFLAGS) $(shared) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(shared) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:
