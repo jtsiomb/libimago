@@ -128,7 +128,16 @@ static void unpack_rgb24(struct pixel *unp, void *pptr, int count)
 
 static void unpack_rgba32(struct pixel *unp, void *pptr, int count)
 {
-	memcpy(unp, pptr, count * sizeof *unp);
+	int i;
+	unsigned char *pix = pptr;
+
+	for(i=0; i<count; i++) {
+		unp->r = (float)*pix++ / 255.0;
+		unp->g = (float)*pix++ / 255.0;
+		unp->b = (float)*pix++ / 255.0;
+		unp->a = (float)*pix++ / 255.0;
+		unp++;
+	}
 }
 
 static void unpack_greyf(struct pixel *unp, void *pptr, int count)
