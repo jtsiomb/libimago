@@ -3,9 +3,15 @@ bin = test
 
 CC = gcc
 CFLAGS = -pedantic -Wall -g -I../src
-LDFLAGS = ../libimago.so.2.0
+LDFLAGS = $(lib)
 
-$(bin): $(obj) ../libimago.so.2.0
+ifeq ($(shell uname -s), Darwin)
+	lib = ../libimago.dylib
+else
+	lib = ../libimago.so.2.0
+endif
+
+$(bin): $(obj) $(lib)
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
 .PHONY: clean

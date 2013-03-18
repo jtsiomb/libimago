@@ -1,20 +1,40 @@
 #include <stdio.h>
 #include <imago2.h>
 
-#define INFILE	"foo.jpg"
-#define OUTFILE	"bar.jpg"
-
-int main(void)
+int main(int argc, char **argv)
 {
+	const char *infile = "foo.jpg";
+	const char *outfile = "bar.jpg";
 	int i, j, xsz = 512, ysz = 512;
 	struct img_pixmap img;
 
+	for(i=1; i<argc; i++) {
+		if(argv[i][0] == '-' && argv[i][2] == 0) {
+			switch(argv[i][1]) {
+			case 'i':
+				infile = argv[++i];
+				break;
+
+			case 'o':
+				outfile = argv[++i];
+				break;
+
+			default:
+				fprintf(stderr, "invalid option: %s\n", argv[i]);
+				return 1;
+			}
+		} else {
+			fprintf(stderr, "invalid argument: %s\n", argv[i]);
+			return 1;
+		}
+	}
+
 	img_init(&img);
 
-	if(img_load(&img, INFILE) == -1) {
+	if(img_load(&img, infile) == -1) {
 		unsigned char *pix;
 
-		fprintf(stderr, "failed to load image: " INFILE ", generating instead\n");
+		fprintf(stderr, "failed to load image: %s, generating instead\n", infile);
 
 		if(img_set_pixels(&img, xsz, ysz, IMG_FMT_RGB24, 0) == -1) {
 			perror("wtf");
@@ -33,8 +53,8 @@ int main(void)
 		}
 	}
 
-	if(img_save(&img, OUTFILE) == -1) {
-		fprintf(stderr, "failed to save file " OUTFILE "\n");
+	if(img_save(&img, outfile) == -1) {
+		fprintf(stderr, "failed to save file %s\n", outfile);
 		return 1;
 	}
 
