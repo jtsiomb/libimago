@@ -57,13 +57,13 @@ static int write(struct img_pixmap *img, struct img_io *io);
 
 /* read source functions */
 static void init_source(j_decompress_ptr jd);
-static int fill_input_buffer(j_decompress_ptr jd);
+static boolean fill_input_buffer(j_decompress_ptr jd);
 static void skip_input_data(j_decompress_ptr jd, long num_bytes);
 static void term_source(j_decompress_ptr jd);
 
 /* write destination functions */
 static void init_destination(j_compress_ptr jc);
-static int empty_output_buffer(j_compress_ptr jc);
+static boolean empty_output_buffer(j_compress_ptr jc);
 static void term_destination(j_compress_ptr jc);
 
 int img_register_jpeg(void)
@@ -213,7 +213,7 @@ static void init_source(j_decompress_ptr jd)
 	src->start_of_file = 1;
 }
 
-static int fill_input_buffer(j_decompress_ptr jd)
+static boolean fill_input_buffer(j_decompress_ptr jd)
 {
 	struct src_mgr *src = (struct src_mgr*)jd->src;
 	size_t nbytes;
@@ -267,7 +267,7 @@ static void init_destination(j_compress_ptr jc)
 	dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
 }
 
-static int empty_output_buffer(j_compress_ptr jc)
+static boolean empty_output_buffer(j_compress_ptr jc)
 {
 	struct dst_mgr *dest = (struct dst_mgr*)jc->dest;
 

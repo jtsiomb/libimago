@@ -112,7 +112,7 @@ static int read(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 
-	if(io->read(img->pixels, xsz * ysz * 3, io->uptr) < xsz * ysz * 3) {
+	if(io->read(img->pixels, xsz * ysz * 3, io->uptr) < (unsigned int)(xsz * ysz * 3)) {
 		return -1;
 	}
 	return 0;
@@ -143,7 +143,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	}
 
 	sz = img->width * img->height * 3;
-	if(io->write(img->pixels, sz, io->uptr) < sz) {
+	if(io->write(img->pixels, sz, io->uptr) < (unsigned int)sz) {
 		img_destroy(&tmpimg);
 		return -1;
 	}

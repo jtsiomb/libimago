@@ -98,7 +98,7 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 	lineptr = (unsigned char**)png_get_rows(png, info);
 
 	dest = img->pixels;
-	for(i=0; i<ysz; i++) {
+	for(i=0; i<(int)ysz; i++) {
 		memcpy(dest, lineptr[i], xsz * img->pixelsz);
 		dest += xsz * img->pixelsz;
 	}
