@@ -84,7 +84,8 @@ static int check(struct img_io *io)
 		return -1;
 	}
 
-	if(memcmp(sig, "\xff\xd8\xff\xe0", 4) != 0 || memcmp(sig + 6, "JFIF", 4) != 0) {
+	if(memcmp(sig, "\xff\xd8\xff\xe0", 4) != 0 && memcmp(sig, "\xff\xd8\xff\xe1", 4) != 0
+			&& memcmp(sig + 6, "JFIF", 4) != 0) {
 		io->seek(pos, SEEK_SET, io->uptr);
 		return -1;
 	}
