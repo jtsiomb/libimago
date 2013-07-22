@@ -61,8 +61,7 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 {
 	png_struct *png;
 	png_info *info;
-	unsigned char **lineptr, *dest;
-	int i, channel_bits, color_type, ilace_type, compression, filtering, fmt;
+	int channel_bits, color_type, ilace_type, compression, filtering, fmt;
 	png_uint_32 xsz, ysz;
 
 	if(!(png = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0))) {
@@ -95,13 +94,31 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 		return -1;
 	}
 
-	lineptr = (unsigned char**)png_get_rows(png, info);
 
-	dest = img->pixels;
-	for(i=0; i<(int)ysz; i++) {
-		memcpy(dest, lineptr[i], xsz * img->pixelsz);
-		dest += xsz * img->pixelsz;
+	if(channel_bits == 8) {
+		unsigned int i;
+		unsigned char **lineptr = (unsigned char**)png_get_rows(png, info);
+		unsigned char *dest = img->pixels;
+
+		for(i=0; i<ysz; i++) {
+			memcpy(dest, lineptr[i], xsz * img->pixelsz);
+			dest += xsz * img->pixelsz;
+		}
+	} else {
+		unsigned int i, j, num_elem;
+		unsigned char **lineptr = (unsigned char**)png_get_rows(png, info);
+		float *dest = img->pixels;
+
+		num_elem = img->pixelsz / sizeof(float);
+		for(i=0; i<ysz; i++) {
+			for(j=0; j<xsz * num_elem; j++) {
+				unsigned short val = (lineptr[i][j * 2] << 8) | lineptr[i][j * 2 + 1];
+				*dest++ = (float)val / 65535.0;
+			}
+		}
 	}
+
+
 	png_destroy_read_struct(&png, &info, 0);
 	return 0;
 }
@@ -204,20 +221,20 @@ static void flush_func(png_struct *png)
 
 static int png_type_to_fmt(int color_type, int channel_bits)
 {
-	/* we don't support non-8bit-per-channel images yet */
-	if(channel_bits > 8) {
+	/* only 8 and 16 bits per channel ar supported at the moment */
+	if(channel_bits != 8 && channel_bits != 16) {
 		return -1;
 	}
 
 	switch(color_type) {
 	case PNG_COLOR_TYPE_RGB:
-		return IMG_FMT_RGB24;
+		return channel_bits == 16 ? IMG_FMT_RGBF : IMG_FMT_RGB24;
 
 	case PNG_COLOR_TYPE_RGB_ALPHA:
-		return IMG_FMT_RGBA32;
+		return channel_bits == 16 ? IMG_FMT_RGBAF : IMG_FMT_RGBA32;
 
 	case PNG_COLOR_TYPE_GRAY:
-		return IMG_FMT_GREY8;
+		return channel_bits == 16 ? IMG_FMT_GREYF : IMG_FMT_GREY8;
 
 	default:
 		break;

@@ -1,0 +1,11 @@
+\.o$
+\.d$
+\.swp$
+\.a$
+\.so$
+\.so\.
+^Makefile$
+src/modules\.c$
+^test/test$
+\.jpg$
+\.png$
