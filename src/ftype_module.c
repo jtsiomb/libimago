@@ -77,7 +77,7 @@ struct ftype_module *img_guess_format(const char *fname)
 	if(!(suffix = strrchr(fname, '.'))) {
 		return 0;	/* no suffix, can't guess ... */
 	}
-	suffix_len = strlen(suffix);
+	suffix_len = (int)strlen(suffix);
 
 	node = modules;
 	while(node) {
