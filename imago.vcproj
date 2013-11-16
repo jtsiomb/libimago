@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="imago"
+	Name="libimago2"
 	ProjectGUID="{1FFDD3FB-E37E-4258-8955-5583AF3A0C29}"
 	RootNamespace="imago"
 	Keyword="Win32Proj"
@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="mkdir usr\include&#x0D;&#x0A;mkdir usr\lib&#x0D;&#x0A;copy /Y src\imago2.h usr\include\imago2.h&#x0D;&#x0A;copy /Y $(TargetPath) usr\lib\"
+				CommandLine="mkdir usr\include&#x0D;&#x0A;mkdir usr\lib&#x0D;&#x0A;copy /Y src\imago2.h usr\include\imago2.h&#x0D;&#x0A;copy /Y $(TargetPath) usr\lib\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
