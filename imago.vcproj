@@ -89,6 +89,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(SolutionDir)\build\vcconfig.bat"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -183,6 +184,10 @@
 			</File>
 			<File
 				RelativePath=".\src\imago_gl.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\modules.c"
 				>
 			</File>
 		</Filter>
