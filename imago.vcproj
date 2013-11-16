@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1253"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="imago"
 	ProjectGUID="{1FFDD3FB-E37E-4258-8955-5583AF3A0C29}"
 	RootNamespace="imago"
@@ -141,6 +141,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="mkdir usr\include&#x0D;&#x0A;mkdir usr\lib&#x0D;&#x0A;copy /Y src\imago2.h usr\include\imago2.h&#x0D;&#x0A;copy /Y $(TargetPath) usr\lib\"
 			/>
 		</Configuration>
 	</Configurations>
@@ -198,12 +199,6 @@
 				RelativePath=".\src\imago2.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 	</Files>
 	<Globals>
