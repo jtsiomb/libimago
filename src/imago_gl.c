@@ -1,6 +1,5 @@
 #include "imago2.h"
 
-
 /* to avoid dependency to OpenGL, I'll define all the relevant GL macros manually */
 #define GL_UNSIGNED_BYTE		0x1401
 #define GL_FLOAT				0x1406
@@ -29,10 +28,17 @@ typedef int GLsizei;
 typedef void GLvoid;
 
 /* for the same reason I'll load GL functions dynamically */
+#ifndef WIN32
 typedef void (*gl_gen_textures_func)(GLsizei, GLuint*);
 typedef void (*gl_bind_texture_func)(GLenum, GLuint);
 typedef void (*gl_tex_parameteri_func)(GLenum, GLenum, GLint);
 typedef void (*gl_tex_image2d_func)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*);
+#else
+typedef void (__stdcall *gl_gen_textures_func)(GLsizei, GLuint*);
+typedef void (__stdcall *gl_bind_texture_func)(GLenum, GLuint);
+typedef void (__stdcall *gl_tex_parameteri_func)(GLenum, GLenum, GLint);
+typedef void (__stdcall *gl_tex_image2d_func)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*);
+#endif
 
 static gl_gen_textures_func gl_gen_textures;
 static gl_bind_texture_func gl_bind_texture;
@@ -212,11 +218,13 @@ static int load_glfunc(void)
 #endif
 
 #ifdef WIN32
-	HMODULE handle = GetModuleHandle(0);
-	gl_gen_textures = (gl_gen_textures_func)GetProcAddress(handle, "glGenTextures");
-	gl_bind_texture = (gl_bind_texture_func)GetProcAddress(handle, "glBindTexture");
-	gl_tex_parameteri = (gl_tex_parameteri_func)GetProcAddress(handle, "glTexParameteri");
-	gl_tex_image2d = (gl_tex_image2d_func)GetProcAddress(handle, "glTexImage2D");
+	HANDLE dll = LoadLibrary("opengl32.dll");
+	if(dll) {
+		gl_gen_textures = (gl_gen_textures_func)GetProcAddress(dll, "glGenTextures");
+		gl_bind_texture = (gl_bind_texture_func)GetProcAddress(dll, "glBindTexture");
+		gl_tex_parameteri = (gl_tex_parameteri_func)GetProcAddress(dll, "glTexParameteri");
+		gl_tex_image2d = (gl_tex_image2d_func)GetProcAddress(dll, "glTexImage2D");
+	}
 #endif
 
 	return (gl_gen_textures && gl_bind_texture && gl_tex_parameteri && gl_tex_image2d) ? 0 : -1;
