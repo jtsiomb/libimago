@@ -1,14 +1,14 @@
-obj = test.o
-bin = test
+obj = src/main.o
+bin = sconv
 
 CC = gcc
-CFLAGS = -pedantic -Wall -g -I../src
+CFLAGS = -pedantic -Wall -g -I../../src
 LDFLAGS = $(lib)
 
 ifeq ($(shell uname -s), Darwin)
-	lib = ../libimago.dylib
+	lib = ../../libimago.dylib
 else
-	lib = ../libimago.so.2.0
+	lib = ../../libimago.so.2.0
 endif
 
 $(bin): $(obj) $(lib)
