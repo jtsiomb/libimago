@@ -143,6 +143,9 @@ mkdir $(SolutionDir)\usr\lib
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
 copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\build\vcconfig.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -164,6 +167,9 @@ mkdir $(SolutionDir)\usr\lib
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
 copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\build\vcconfig.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\conv.c" />
@@ -174,6 +180,7 @@ copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
     <ClCompile Include="src\ftype_module.c" />
     <ClCompile Include="src\imago2.c" />
     <ClCompile Include="src\imago_gl.c" />
+    <ClCompile Include="src\modules.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ftype_module.h" />

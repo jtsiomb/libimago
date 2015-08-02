@@ -39,6 +39,9 @@
     <ClCompile Include="src\imago_gl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\modules.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ftype_module.h">
