@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* -- PNG module -- */
 
 #include <stdlib.h>
+#include <string.h>
 #include <png.h>
 #include "imago2.h"
 #include "ftype_module.h"
