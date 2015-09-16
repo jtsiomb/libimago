@@ -8,20 +8,32 @@ lib_a = libimago.a
 somajor = 2
 sominor = 0
 
+CC = gcc
+AR = ar
+CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) -Isrc $(incdir)
+LDFLAGS = $(libdir) -lpng -lz -ljpeg
+
 incdir = -I$(PREFIX)/include
 libdir = -L$(PREFIX)/lib
 
-ifeq ($(shell uname -s), Darwin)
+sys := $(patsubst MINGW32%,MINGW32,$(shell uname -s))
+ifeq ($(sys), Darwin)
 	lib_so = libimago.dylib
 	shared = -dynamiclib
 	# add macports and fink dirs to the include and lib paths
 	incdir += -I/opt/local/include -I/sw/local/include -I/usr/X11R6/include
 	libdir += -L/opt/local/lib -L/sw/local/lib -L/usr/X11R6/lib
+	LDFLAGS += -ldl
+else ifeq ($(sys), MINGW32)
+	lib_so = libimago.dll
+	shared = -shared
 else
 	soname = libimago.so.$(somajor)
 	lib_so = $(soname).$(sominor)
 	solink = libimago.so
 	shared = -shared -Wl,-soname,$(soname)
+	pic = -fPIC
+	LDFLAGS += -ldl
 endif
 
 ifeq ($(shell uname -s), IRIX)
@@ -29,11 +41,6 @@ ifeq ($(shell uname -s), IRIX)
 	incdir += -I/usr/nekoware/include -I/usr/freeware/include
 	libdir += -L/usr/nekoware/lib -L/usr/freeware/lib
 endif
-
-CC = gcc
-AR = ar
-CFLAGS = -pedantic -Wall $(opt) $(dbg) -fPIC -Isrc $(incdir)
-LDFLAGS = $(libdir) -lpng -lz -ljpeg -ldl
 
 .PHONY: all
 all: $(lib_a) $(lib_so)
