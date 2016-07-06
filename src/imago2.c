@@ -136,16 +136,19 @@ void *img_load_pixels(const char *fname, int *xsz, int *ysz, enum img_fmt fmt)
 
 int img_save_pixels(const char *fname, void *pix, int xsz, int ysz, enum img_fmt fmt)
 {
+	int res;
 	struct img_pixmap img;
 
 	img_init(&img);
 	img.fmt = fmt;
-	img.name = (char*)fname;
 	img.width = xsz;
 	img.height = ysz;
 	img.pixels = pix;
 
-	return img_save(&img, fname);
+	res = img_save(&img, fname);
+	img.pixels = 0;
+	img_destroy(&img);
+	return res;
 }
 
 void img_free_pixels(void *pix)
