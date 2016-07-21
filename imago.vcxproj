@@ -27,10 +27,10 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -39,9 +39,9 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -101,8 +101,13 @@
       <Command>mkdir $(SolutionDir)\usr\include
 mkdir $(SolutionDir)\usr\lib
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
-copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
+copy /Y $(TargetPath) $(SolutionDir)\usr\lib\
+copy /Y $(OutputPath)\$(TargetName).lib $(SolutionDir)\usr\lib</Command>
     </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libjpeg.lib;libpng.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>imago.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PreBuildEvent>
@@ -125,6 +130,9 @@ mkdir $(SolutionDir)\usr\lib
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
 copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
     </PostBuildEvent>
+    <Link>
+      <ModuleDefinitionFile>imago.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -143,11 +151,16 @@ copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
       <Command>mkdir $(SolutionDir)\usr\include
 mkdir $(SolutionDir)\usr\lib
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
-copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
+copy /Y $(TargetPath) $(SolutionDir)\usr\lib\
+copy /Y $(OutputPath)\$(TargetName).lib $(SolutionDir)\usr\lib</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>$(SolutionDir)\build\vcconfig.bat</Command>
     </PreBuildEvent>
+    <Link>
+      <AdditionalDependencies>libjpeg.lib;libpng.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>imago.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -172,6 +185,9 @@ copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
     <PreBuildEvent>
       <Command>$(SolutionDir)\build\vcconfig.bat</Command>
     </PreBuildEvent>
+    <Link>
+      <ModuleDefinitionFile>imago.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\conv.c" />
@@ -187,6 +203,9 @@ copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
   <ItemGroup>
     <ClInclude Include="src\ftype_module.h" />
     <ClInclude Include="src\imago2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="imago.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
