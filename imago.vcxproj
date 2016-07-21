@@ -84,7 +84,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
-      <Command>$(SolutionDir)\build\vcconfig.bat</Command>
+      <Command>$(ProjectDir)\build\vcconfig.bat</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -98,12 +98,12 @@
       <DisableSpecificWarnings>4244;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PostBuildEvent>
-      <Command>mkdir $(SolutionDir)\usr\include
-mkdir $(SolutionDir)\usr\lib
-mkdir $(SolutionDir)\usr\bin
-copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
-copy /Y $(TargetPath) $(SolutionDir)\usr\bin\
-copy /Y $(OutputPath)\$(TargetName).lib $(SolutionDir)\usr\lib</Command>
+      <Command>mkdir $(ProjectDir)\usr\include
+mkdir $(ProjectDir)\usr\lib
+mkdir $(ProjectDir)\usr\bin
+copy /Y $(ProjectDir)\src\imago2.h $(ProjectDir)\usr\include\
+copy /Y $(TargetPath) $(ProjectDir)\usr\bin\
+copy /Y $(OutputPath)\$(TargetName).lib $(ProjectDir)\usr\lib</Command>
     </PostBuildEvent>
     <Link>
       <AdditionalDependencies>libjpeg.lib;libpng.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -149,15 +149,15 @@ copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
       <DisableSpecificWarnings>4244;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <PostBuildEvent>
-      <Command>mkdir $(SolutionDir)\usr\include
-mkdir $(SolutionDir)\usr\lib
-mkdir $(SolutionDir)\usr\bin
-copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
-copy /Y $(TargetPath) $(SolutionDir)\usr\bin\
-copy /Y $(OutputPath)\$(TargetName).lib $(SolutionDir)\usr\lib</Command>
+      <Command>mkdir $(ProjectDir)\usr\include
+mkdir $(ProjectDir)\usr\lib
+mkdir $(ProjectDir)\usr\bin
+copy /Y $(ProjectDir)\src\imago2.h $(ProjectDir)\usr\include\
+copy /Y $(TargetPath) $(ProjectDir)\usr\bin\
+copy /Y $(OutputPath)\$(TargetName).lib $(ProjectDir)\usr\lib</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>$(SolutionDir)\build\vcconfig.bat</Command>
+      <Command>$(ProjectDir)\build\vcconfig.bat</Command>
     </PreBuildEvent>
     <Link>
       <AdditionalDependencies>libjpeg.lib;libpng.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
