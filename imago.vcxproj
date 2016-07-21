@@ -100,8 +100,9 @@
     <PostBuildEvent>
       <Command>mkdir $(SolutionDir)\usr\include
 mkdir $(SolutionDir)\usr\lib
+mkdir $(SolutionDir)\usr\bin
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
-copy /Y $(TargetPath) $(SolutionDir)\usr\lib\
+copy /Y $(TargetPath) $(SolutionDir)\usr\bin\
 copy /Y $(OutputPath)\$(TargetName).lib $(SolutionDir)\usr\lib</Command>
     </PostBuildEvent>
     <Link>
@@ -150,8 +151,9 @@ copy /Y $(TargetPath) $(SolutionDir)\usr\lib\</Command>
     <PostBuildEvent>
       <Command>mkdir $(SolutionDir)\usr\include
 mkdir $(SolutionDir)\usr\lib
+mkdir $(SolutionDir)\usr\bin
 copy /Y $(SolutionDir)\src\imago2.h $(SolutionDir)\usr\include\
-copy /Y $(TargetPath) $(SolutionDir)\usr\lib\
+copy /Y $(TargetPath) $(SolutionDir)\usr\bin\
 copy /Y $(OutputPath)\$(TargetName).lib $(SolutionDir)\usr\lib</Command>
     </PostBuildEvent>
     <PreBuildEvent>
