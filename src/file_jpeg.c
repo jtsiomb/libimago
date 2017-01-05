@@ -191,6 +191,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 	cinfo.in_color_space = JCS_RGB;
 
 	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, 95, 0);
 
 	jpeg_start_compress(&cinfo, 1);
 	while(nlines < img->height) {
