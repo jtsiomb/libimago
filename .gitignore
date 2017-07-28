@@ -1,0 +1,8 @@
+*.o
+*.d
+*.swp
+*.a
+*.so
+*.so.*
+Makefile
+modules.c
