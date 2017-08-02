@@ -14,14 +14,6 @@ Currently supported file formats:
  * Radiance shared exponent HDR (RGBE).
  * LBM: InterLeaved BitMaps (ILBM), and Planar BitMaps (PBM).
 
-Download
---------
-Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.1.tar.gz
-
-Grab the source code from github: https://github.com/jtsiomb/libimago
-
-Web site: http://nuclear.mutantstargoat.com/sw/libimago
-
 License
 -------
 
@@ -31,6 +23,14 @@ You may freely use, modify and/or redistribute libimago, under the terms of the
 GNU Lesser General Public License (LGPL) version 3 (or at your option, any
 later version published by the Free Software Foundation). See COPYING_ and
 COPYING.LESSER_ for details.
+
+Download
+--------
+Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.1.tar.gz
+
+Grab the source code from github: https://github.com/jtsiomb/libimago
+
+Web site: http://nuclear.mutantstargoat.com/sw/libimago
 
 Usage example
 -------------
