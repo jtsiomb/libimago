@@ -12,7 +12,7 @@ Currently supported file formats:
  * Targa: 24bit or 32bit, raw, or RLE compressed.
  * Portable PixMap (PPM), and Portable GreyMap (PGM).
  * Radiance shared exponent HDR (RGBE).
- * LBM: InterLeaved BitMaps (ILBM), and Planar BitMaps (PBM).
+ * LBM: InterLeaved BitMap (ILBM), and Planar BitMap (PBM).
 
 License
 -------
