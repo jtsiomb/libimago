@@ -133,15 +133,15 @@ static int read(struct img_pixmap *img, struct img_io *io)
 	hdr.img_desc = c;
 
 	if(!IS_RGBA(hdr.img_type)) {
-		fprintf(stderr, "only true color tga images supported\n");
+		fprintf(stderr, "libimago: only true color tga images are supported\n");
 		return -1;
 	}
 
-	io->seek(hdr.idlen, SEEK_CUR, io);	/* skip the image ID */
+	io->seek(hdr.idlen, SEEK_CUR, io->uptr);	/* skip the image ID */
 
 	/* skip the color map if it exists */
 	if(hdr.cmap_type == 1) {
-		io->seek(hdr.cmap_len * hdr.cmap_entry_sz / 8, SEEK_CUR, io);
+		io->seek(hdr.cmap_len * hdr.cmap_entry_sz / 8, SEEK_CUR, io->uptr);
 	}
 
 	x = hdr.img_width;

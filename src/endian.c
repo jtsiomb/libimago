@@ -50,3 +50,17 @@ void img_write_uint16_inv(struct img_io *io, uint16_t val)
 	val = (val >> 8) | (val << 8);
 	io->write(&val, 2, io->uptr);
 }
+
+uint32_t img_read_uint32(struct img_io *io)
+{
+	uint32_t v;
+	io->read(&v, 4, io->uptr);
+	return v;
+}
+
+uint32_t img_read_uint32_inv(struct img_io *io)
+{
+	uint32_t v;
+	io->read(&v, 4, io->uptr);
+	return (v << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) | (v >> 24);
+}

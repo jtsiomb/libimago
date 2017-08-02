@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define img_write_uint16_le(f, v)	img_write_uint16(f, v)
 #define img_read_uint16_be(f)		img_read_uint16_inv(f)
 #define img_write_uint16_be(f, v)	img_write_uint16_inv(f, v)
+
+#define img_read_uint32_be(f)		img_read_uint32_inv(f)
 #else
 /* big endian */
 #define IMAGO_BIG_ENDIAN
@@ -51,6 +53,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define img_write_uint16_le(f, v)	img_write_uint16_inv(f, v)
 #define img_read_uint16_be(f)		img_read_uint16(f)
 #define img_write_uint16_be(f, v)	img_write_uint16(f, v)
+
+#define img_read_uint32_be(f)		img_read_uint32(f)
 #endif	/* endian check */
 
 int16_t img_read_int16(struct img_io *io);
@@ -62,6 +66,9 @@ void img_write_int16(struct img_io *io, int16_t val);
 void img_write_int16_inv(struct img_io *io, int16_t val);
 void img_write_uint16(struct img_io *io, uint16_t val);
 void img_write_uint16_inv(struct img_io *io, uint16_t val);
+
+uint32_t img_read_uint32(struct img_io *io);
+uint32_t img_read_uint32_inv(struct img_io *io);
 
 
 #endif	/* ENDIAN_H_ */
