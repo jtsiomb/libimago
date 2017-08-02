@@ -70,13 +70,13 @@ struct tga_footer {
 
 
 static int check(struct img_io *io);
-static int read(struct img_pixmap *img, struct img_io *io);
-static int write(struct img_pixmap *img, struct img_io *io);
-static int read_pixel(struct img_io *io, int rdalpha, uint32_t *pix);
+static int read_tga(struct img_pixmap *img, struct img_io *io);
+static int write_tga(struct img_pixmap *img, struct img_io *io);
+static int read_pixel(struct img_io *io, int rdalpha, unsigned char *pix);
 
 int img_register_tga(void)
 {
-	static struct ftype_module mod = {".tga", check, read, write};
+	static struct ftype_module mod = {".tga:.targa", check, read_tga, write_tga};
 	return img_register_module(&mod);
 }
 
@@ -102,18 +102,18 @@ static int check(struct img_io *io)
 
 static int iofgetc(struct img_io *io)
 {
-	char c;
+	int c = 0;
 	return io->read(&c, 1, io->uptr) < 1 ? -1 : c;
 }
 
-static int read(struct img_pixmap *img, struct img_io *io)
+static int read_tga(struct img_pixmap *img, struct img_io *io)
 {
 	struct tga_header hdr;
 	unsigned long x, y;
 	int i, c;
-	uint32_t ppixel = 0;
 	int rle_mode = 0, rle_pix_left = 0;
 	int rdalpha;
+	int pixel_bytes;
 
 	/* read header */
 	hdr.idlen = iofgetc(io);
@@ -147,22 +147,22 @@ static int read(struct img_pixmap *img, struct img_io *io)
 	x = hdr.img_width;
 	y = hdr.img_height;
 	rdalpha = hdr.img_desc & 0xf;
+	pixel_bytes = rdalpha ? 4 : 3;
 
-	/* TODO make this IMG_FMT_RGB24 if there's no alpha channel */
-	if(img_set_pixels(img, x, y, IMG_FMT_RGBA32, 0) == -1) {
+	if(img_set_pixels(img, x, y, rdalpha ? IMG_FMT_RGBA32 : IMG_FMT_RGB24, 0) == -1) {
 		return -1;
 	}
 
 	for(i=0; i<y; i++) {
-		uint32_t *ptr;
+		unsigned char *ptr;
 		int j;
 
-		ptr = (uint32_t*)img->pixels + ((hdr.img_desc & 0x20) ? i : y - (i + 1)) * x;
+		ptr = (unsigned char*)img->pixels + ((hdr.img_desc & 0x20) ? i : y - (i + 1)) * x * pixel_bytes;
 
 		for(j=0; j<x; j++) {
 			/* if the image is raw, then just read the next pixel */
 			if(!IS_RLE(hdr.img_type)) {
-				if(read_pixel(io, rdalpha, &ppixel) == -1) {
+				if(read_pixel(io, rdalpha, ptr) == -1) {
 					return -1;
 				}
 			} else {
@@ -172,7 +172,7 @@ static int read(struct img_pixmap *img, struct img_io *io)
 				if(rle_pix_left) {
 					/* if it's a raw packet, read the next pixel, otherwise keep the same */
 					if(!rle_mode) {
-						if(read_pixel(io, rdalpha, &ppixel) == -1) {
+						if(read_pixel(io, rdalpha, ptr) == -1) {
 							return -1;
 						}
 					}
@@ -183,37 +183,40 @@ static int read(struct img_pixmap *img, struct img_io *io)
 					rle_mode = (phdr & 128);		/* last bit shows the mode for this packet (1: rle, 0: raw) */
 					rle_pix_left = (phdr & ~128);	/* the rest gives the count of pixels minus one (we also read one here, so no +1) */
 					/* and read the first pixel of the packet */
-					if(read_pixel(io, rdalpha, &ppixel) == -1) {
+					if(read_pixel(io, rdalpha, ptr) == -1) {
 						return -1;
 					}
 				}
 			}
 
-			*ptr++ = ppixel;
+			ptr += pixel_bytes;
 		}
 	}
 
 	return 0;
 }
 
-static int write(struct img_pixmap *img, struct img_io *io)
+static int write_tga(struct img_pixmap *img, struct img_io *io)
 {
 	return -1;	/* TODO */
 }
 
-#define PACK_COLOR32(r,g,b,a) \
-	((((a) & 0xff) << 24) | \
-	 (((r) & 0xff) << 0) | \
-	 (((g) & 0xff) << 8) | \
-	 (((b) & 0xff) << 16))
-
-static int read_pixel(struct img_io *io, int rdalpha, uint32_t *pix)
+static int read_pixel(struct img_io *io, int rdalpha, unsigned char *pix)
 {
 	int r, g, b, a;
-	b = iofgetc(io);
-	g = iofgetc(io);
-	r = iofgetc(io);
-	a = rdalpha ? iofgetc(io) : 0xff;
-	*pix = PACK_COLOR32(r, g, b, a);
-	return a == -1 || r == -1 ? -1 : 0;
+	if((b = iofgetc(io)) == -1 || (g = iofgetc(io)) == -1 || (r = iofgetc(io)) == -1) {
+		return -1;
+	}
+
+	pix[0] = r;
+	pix[1] = g;
+	pix[2] = b;
+
+	if(rdalpha) {
+		if((a = iofgetc(io)) == -1) {
+			return -1;
+		}
+		pix[3] = a;
+	}
+	return 0;
 }
