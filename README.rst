@@ -9,17 +9,18 @@ image file formats.
 Currently supported file formats:
  * PNG (requires libpng).
  * JPEG (requires libjpeg).
- * Targa: 24/32bit, raw or RLE compressed.
- * Portable pixmap (PPM), and portable greymap (PGM).
+ * Targa: 24bit or 32bit, raw, or RLE compressed.
+ * Portable PixMap (PPM), and Portable GreyMap (PGM).
  * Radiance shared exponent HDR (RGBE).
+ * LBM: InterLeaved BitMaps (ILBM), and Planar BitMaps (PBM).
 
 Download
 --------
-Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.0.tar.gz
+Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.1.tar.gz
 
 Grab the source code from github: https://github.com/jtsiomb/libimago
 
-web site: http://nuclear.mutantstargoat.com/sw/libimago
+Web site: http://nuclear.mutantstargoat.com/sw/libimago
 
 License
 -------

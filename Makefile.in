@@ -6,7 +6,7 @@ obj = $(csrc:.c=.o)
 lib_a = libimago.a
 
 somajor = 2
-sominor = 0
+sominor = 1
 
 CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) $(defs) -Isrc $(incdir)
 LDFLAGS = $(libdir) $(ldflags_png) $(ldflags_jpeg)
