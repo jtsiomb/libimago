@@ -14,5 +14,7 @@ modules.c
 *.rgbe
 *.tga
 *.ppm
+*.pgm
 examples/simpleconv/sconv
 examples/imagoview/imagoview
+examples/glimago/glimago
