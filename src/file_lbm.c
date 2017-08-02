@@ -126,7 +126,7 @@ static int check_file(struct img_io *io)
 			type = img_read_uint32_be(io);
 			if(type == IFF_ILBM || type == IFF_PBM ) {
 				io->seek(pos, SEEK_SET, io->uptr);
-				return 1;
+				return 0;
 			}
 			hdr.size -= sizeof type;	/* so we will seek fwd correctly */
 		}
@@ -134,7 +134,7 @@ static int check_file(struct img_io *io)
 	}
 
 	io->seek(pos, SEEK_SET, io->uptr);
-	return 0;
+	return -1;
 }
 
 static int read_file(struct img_pixmap *img, struct img_io *io)
