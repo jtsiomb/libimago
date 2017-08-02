@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2017 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -285,6 +285,11 @@ int img_has_alpha(struct img_pixmap *img)
 		return 1;
 	}
 	return 0;
+}
+
+int img_is_greyscale(struct img_pixmap *img)
+{
+	return img->fmt == IMG_FMT_GREY8 || img->fmt == IMG_FMT_GREYF;
 }
 
 

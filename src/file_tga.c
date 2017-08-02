@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2015 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2017 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -23,22 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "imago2.h"
 #include "ftype_module.h"
-
-
-#if  defined(__i386__) || defined(__ia64__) || defined(WIN32) || \
-    (defined(__alpha__) || defined(__alpha)) || \
-     defined(__arm__) || \
-    (defined(__mips__) && defined(__MIPSEL__)) || \
-     defined(__SYMBIAN32__) || \
-     defined(__x86_64__) || \
-     defined(__LITTLE_ENDIAN__)
-/* little endian */
-#define read_int16_le(f)	read_int16(f)
-#else
-/* big endian */
-#define read_int16_le(f)	read_int16_inv(f)
-#endif	/* endian check */
-
+#include "endian.h"
 
 enum {
 	IMG_NONE,
@@ -88,8 +73,6 @@ static int check(struct img_io *io);
 static int read(struct img_pixmap *img, struct img_io *io);
 static int write(struct img_pixmap *img, struct img_io *io);
 static int read_pixel(struct img_io *io, int rdalpha, uint32_t *pix);
-static int16_t read_int16(struct img_io *io);
-static int16_t read_int16_inv(struct img_io *io);
 
 int img_register_tga(void)
 {
@@ -136,13 +119,13 @@ static int read(struct img_pixmap *img, struct img_io *io)
 	hdr.idlen = iofgetc(io);
 	hdr.cmap_type = iofgetc(io);
 	hdr.img_type = iofgetc(io);
-	hdr.cmap_first = read_int16_le(io);
-	hdr.cmap_len = read_int16_le(io);
+	hdr.cmap_first = img_read_int16_le(io);
+	hdr.cmap_len = img_read_int16_le(io);
 	hdr.cmap_entry_sz = iofgetc(io);
-	hdr.img_x = read_int16_le(io);
-	hdr.img_y = read_int16_le(io);
-	hdr.img_width = read_int16_le(io);
-	hdr.img_height = read_int16_le(io);
+	hdr.img_x = img_read_int16_le(io);
+	hdr.img_y = img_read_int16_le(io);
+	hdr.img_width = img_read_int16_le(io);
+	hdr.img_height = img_read_int16_le(io);
 	hdr.img_bpp = iofgetc(io);
 	if((c = iofgetc(io)) == -1) {
 		return -1;
@@ -233,18 +216,4 @@ static int read_pixel(struct img_io *io, int rdalpha, uint32_t *pix)
 	a = rdalpha ? iofgetc(io) : 0xff;
 	*pix = PACK_COLOR32(r, g, b, a);
 	return a == -1 || r == -1 ? -1 : 0;
-}
-
-static int16_t read_int16(struct img_io *io)
-{
-	int16_t v;
-	io->read(&v, 2, io);
-	return v;
-}
-
-static int16_t read_int16_inv(struct img_io *io)
-{
-	int16_t v;
-	io->read(&v, 2, io);
-	return ((v >> 8) & 0xff) | (v << 8);
 }

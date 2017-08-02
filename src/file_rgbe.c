@@ -43,7 +43,7 @@ static int rgbe_write_pixels_rle(struct img_io *io, float *data, int scanline_wi
 
 int img_register_rgbe(void)
 {
-	static struct ftype_module mod = {".hdr", check, read, write};
+	static struct ftype_module mod = {".rgbe:.pic:.hdr", check, read, write};
 	return img_register_module(&mod);
 }
 

@@ -6,3 +6,13 @@
 *.so.*
 Makefile
 modules.c
+*.jpg
+*.jpeg
+*.png
+*.pic
+*.hdr
+*.rgbe
+*.tga
+*.ppm
+examples/simpleconv/sconv
+examples/imagoview/imagoview

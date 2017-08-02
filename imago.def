@@ -25,6 +25,7 @@ EXPORTS
 	img_to_integer
 	img_is_float
 	img_has_alpha
+	img_is_greyscale
 
 	img_setpixel
 	img_getpixel

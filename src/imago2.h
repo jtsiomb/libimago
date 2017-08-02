@@ -140,6 +140,8 @@ int img_to_integer(struct img_pixmap *img);
 int img_is_float(struct img_pixmap *img);
 /* Returns non-zero (true) if the supplied image has an alpha channel */
 int img_has_alpha(struct img_pixmap *img);
+/* Returns non-zero (true) if the supplied image is greyscale */
+int img_is_greyscale(struct img_pixmap *img);
 
 
 /* don't use these for anything performance-critical */
