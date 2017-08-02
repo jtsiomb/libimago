@@ -49,6 +49,7 @@ To load image data in the closest possible format to whatever is natively
 stored in each particular image file, use:
 
 .. code:: c
+
  struct img_pixmap img;
  img_init(&img);
  img_load(&img, "foo.png");
