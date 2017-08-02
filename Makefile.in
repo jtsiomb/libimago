@@ -8,10 +8,8 @@ lib_a = libimago.a
 somajor = 2
 sominor = 0
 
-CC = gcc
-AR = ar
-CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) -Isrc $(incdir)
-LDFLAGS = $(libdir) -lpng -lz -ljpeg
+CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) $(defs) -Isrc $(incdir)
+LDFLAGS = $(libdir) $(ldflags_png) $(ldflags_jpeg)
 
 incdir = -I$(PREFIX)/include
 libdir = -L$(PREFIX)/lib

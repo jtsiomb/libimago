@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /* -- JPEG module -- */
+#ifndef NO_JPEG
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -293,3 +294,11 @@ static void term_destination(j_compress_ptr jc)
 	}
 	/* XXX flush? ... */
 }
+
+#else
+/* build without JPEG support */
+int img_register_jpeg(void)
+{
+	return -1;
+}
+#endif

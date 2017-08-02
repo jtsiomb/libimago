@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /* -- PNG module -- */
+#ifndef NO_PNG
 
 #include <stdlib.h>
 #include <string.h>
@@ -260,3 +261,13 @@ static int fmt_to_png_type(enum img_fmt fmt)
 	}
 	return -1;
 }
+
+#else
+/* building with PNG support disabled */
+
+int img_register_png(void)
+{
+	return -1;
+}
+
+#endif

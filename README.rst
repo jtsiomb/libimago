@@ -63,5 +63,26 @@ texture out of it in a single call:
 
  unsigned int texture = img_gltexture_load("foo.png");
 
+Build
+-----
+To build and install `imago2` on UNIX run::
+
+ ./configure
+ make
+ make install
+
+If you wish to avoid the `libpng` or `libjpeg` dependencies, you may disable
+support for these formats by passing `--disable-png` or `--disable-jpeg` to
+`configure`.
+
+To build on windows try to open the included visual studio project. For this to
+work you will have to download and build any dependencies (libpng, zlib, and
+libjpeg), point the visual studio include/library paths to the correct
+directories, and call the old ones from the deep.
+
+If the build succeeds, a `usr` hierarchy will have been created in the project.
+Feel free to run `install.bat` to copy it to `C:\usr`, to try and impose some
+semblance of sanity to the system.
+
 .. _COPYING: http://www.gnu.org/licenses/gpl
 .. _COPYING.LESSER: http://www.gnu.org/licenses/lgpl

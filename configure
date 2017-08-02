@@ -1,5 +1,9 @@
 #!/bin/sh
 
+prefix=/usr/local
+use_libpng=true
+use_libjpeg=true
+
 gen_module_init()
 {
 	# collect all src/file_whatever.c files
@@ -21,7 +25,44 @@ gen_module_init()
 	echo '}'
 }
 
+for arg in "$@"; do
+	case "$arg" in
+	--prefix=*)
+		prefix=`echo $arg | sed 's/--prefix=//'`
+		;;
+
+	--disable-png)
+		defs="-DNO_PNG $defs"
+		use_libpng=false
+		;;
+
+	--disable-jpeg)
+		defs="-DNO_JPEG $defs"
+		use_libjpeg=false
+		;;
+
+	--help)
+		echo 'usage: ./configure [options]'
+		echo 'options:'
+		echo '  --prefix=<path>: installation path (default: /usr/local)'
+		echo '  --disable-png: build without PNG support'
+		echo '  --disable-jpeg: build without JPEG support'
+		echo 'all invalid options are silently ignored'
+		exit 0
+		;;
+	esac
+done
+
 gen_module_init >src/modules.c
 
-echo 'PREFIX = /usr/local' >Makefile
+echo "PREFIX = $prefix" >Makefile
+echo "defs = $defs" >>Makefile
+if $use_libpng; then
+	echo "ldflags_png = -lpng -lz" >>Makefile
+fi
+if $use_libjpeg; then
+	echo "ldflags_jpeg = -ljpeg" >>Makefile
+fi
 cat Makefile.in >>Makefile
+
+echo 'configuration completed, type make (or gmake) to build.'
