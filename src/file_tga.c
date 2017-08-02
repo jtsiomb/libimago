@@ -155,7 +155,7 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 
 	for(i=0; i<y; i++) {
 		unsigned char *ptr;
-		int j;
+		int j, k;
 
 		ptr = (unsigned char*)img->pixels + ((hdr.img_desc & 0x20) ? i : y - (i + 1)) * x * pixel_bytes;
 
@@ -174,6 +174,10 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 					if(!rle_mode) {
 						if(read_pixel(io, rdalpha, ptr) == -1) {
 							return -1;
+						}
+					} else {
+						for(k=0; k<pixel_bytes; k++) {
+							ptr[k] = ptr[k - pixel_bytes];
 						}
 					}
 					--rle_pix_left;

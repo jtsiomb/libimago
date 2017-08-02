@@ -222,7 +222,6 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 			break;
 
 		case IFF_CRNG:
-			/* color cycling not supported */
 			assert(hdr.size == sizeof crng);
 
 			if(read_crng(io, &crng) == -1) {
