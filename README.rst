@@ -85,5 +85,11 @@ If the build succeeds, a ``usr`` hierarchy will have been created in the project
 Feel free to run ``install.bat`` to copy it to ``C:\usr``, to try and impose some
 semblance of sanity to the system.
 
+To cross-compile for windows with mingw-w64, try the following incantation::
+
+ ./configure --prefix=/usr/i686-w64-mingw32
+ make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar sys=MINGW32
+ make install sys=MINGW32
+
 .. _COPYING: http://www.gnu.org/licenses/gpl
 .. _COPYING.LESSER: http://www.gnu.org/licenses/lgpl
