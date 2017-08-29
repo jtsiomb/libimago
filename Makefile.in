@@ -7,6 +7,7 @@ lib_a = libimago.a
 
 somajor = 2
 sominor = 1
+sodir = dir
 
 CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) $(defs) -Isrc $(incdir)
 LDFLAGS = $(libdir) $(ldflags_png) $(ldflags_jpeg)
@@ -25,6 +26,7 @@ ifeq ($(sys), Darwin)
 else ifeq ($(sys), MINGW32)
 	lib_so = libimago.dll
 	shared = -shared
+	sodir = bin
 else
 	soname = libimago.so.$(somajor)
 	lib_so = $(soname).$(sominor)
@@ -61,10 +63,10 @@ distclean:
 install: $(lib_so) $(lib_a)
 	mkdir -p $(DESTDIR)$(PREFIX)/include $(DESTDIR)$(PREFIX)/lib
 	cp src/imago2.h $(DESTDIR)$(PREFIX)/include/imago2.h
-	cp $(lib_so) $(DESTDIR)$(PREFIX)/lib/$(lib_so)
+	cp $(lib_so) $(DESTDIR)$(PREFIX)/$(sodir)/$(lib_so)
 	cp $(lib_a) $(DESTDIR)$(PREFIX)/lib/$(lib_a)
 	[ -n "$(solink)" ] \
-		&& cd $(DESTDIR)$(PREFIX)/lib \
+		&& cd $(DESTDIR)$(PREFIX)/$(sodir) \
 		&& rm -f $(solink) $(soname) \
 		&& ln -s $(lib_so) $(soname) \
 		&& ln -s $(soname) $(solink) \
@@ -73,9 +75,9 @@ install: $(lib_so) $(lib_a)
 .PHONY: uninstall
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/include/imago2.h
-	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_so)
+	rm -f $(DESTDIR)$(PREFIX)/$(sodir)/$(lib_so)
 	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_a)
 	[ -n "$(solink)" ] \
-		&& rm -f $(DESTDIR)$(PREFIX)/lib/$(solink) \
-		&& rm -f $(DESTDIR)$(PREFIX)/lib/$(soname) \
+		&& rm -f $(DESTDIR)$(PREFIX)/$(sodir)/$(solink) \
+		&& rm -f $(DESTDIR)$(PREFIX)/$(sodir)/$(soname) \
 		|| true
