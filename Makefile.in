@@ -7,7 +7,7 @@ lib_a = libimago.a
 
 somajor = 2
 sominor = 1
-sodir = dir
+sodir = lib
 
 CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) $(defs) -Isrc $(incdir)
 LDFLAGS = $(libdir) $(ldflags_png) $(ldflags_jpeg)
