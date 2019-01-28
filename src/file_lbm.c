@@ -105,8 +105,11 @@ static int read_crng(struct img_io *io, struct crng *crng);
 static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct img_pixmap *img);
 static int read_body_pbm(struct img_io *io, struct bitmap_header *bmhd, struct img_pixmap *img);
 static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, int width);
+
+#ifdef IMAGO_LITTLE_ENDIAN
 static uint16_t swap16(uint16_t x);
 static uint32_t swap32(uint32_t x);
+#endif
 
 
 int img_register_lbm(void)
@@ -342,7 +345,7 @@ static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct 
 		memset(dest, 0, img->width);	/* clear the whole scanline to OR bits into place */
 
 		for(j=0; j<bmhd->nplanes; j++) {
-			// read a row corresponding to bitplane j
+			/* read a row corresponding to bitplane j */
 			if(bmhd->compression) {
 				if(read_compressed_scanline(io, rowbuf, rowsz) == -1) {
 					return -1;
@@ -353,7 +356,7 @@ static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct 
 				}
 			}
 
-			// distribute all bits across the linear output scanline
+			/* distribute all bits across the linear output scanline */
 			src = rowbuf;
 			bitidx = 0;
 

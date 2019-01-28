@@ -198,11 +198,12 @@ unsigned int img_gltexture_read(struct img_io *io)
 }
 
 #if defined(__unix__) || defined(__APPLE__)
-#ifndef __USE_GNU
-#define __USE_GNU
+#include <dlfcn.h>
+
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT	((void*)0)
 #endif
 
-#include <dlfcn.h>
 #endif
 #ifdef WIN32
 #include <windows.h>
