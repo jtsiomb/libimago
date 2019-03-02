@@ -18,7 +18,9 @@
 #define GL_TEXTURE_MAG_FILTER	0x2800
 #define GL_TEXTURE_MIN_FILTER	0x2801
 #define GL_LINEAR				0x2601
+#define GL_LINEAR_MIPMAP_LINEAR	0x2703
 #define GL_REPEAT				0x2901
+#define GL_GENERATE_MIPMAP_SGIS	0x8191
 
 
 typedef unsigned int GLenum;
@@ -33,17 +35,23 @@ typedef void (*gl_gen_textures_func)(GLsizei, GLuint*);
 typedef void (*gl_bind_texture_func)(GLenum, GLuint);
 typedef void (*gl_tex_parameteri_func)(GLenum, GLenum, GLint);
 typedef void (*gl_tex_image2d_func)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*);
+typedef void (*gl_generate_mipmap_func)(GLenum);
+typedef GLenum (*gl_get_error_func)(void);
 #else
 typedef void (__stdcall *gl_gen_textures_func)(GLsizei, GLuint*);
 typedef void (__stdcall *gl_bind_texture_func)(GLenum, GLuint);
 typedef void (__stdcall *gl_tex_parameteri_func)(GLenum, GLenum, GLint);
 typedef void (__stdcall *gl_tex_image2d_func)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*);
+typedef void (__stdcall *gl_generate_mipmap_func)(GLenum);
+typedef GLenum (__stdcall *gl_get_error_func)(void);
 #endif
 
 static gl_gen_textures_func gl_gen_textures;
 static gl_bind_texture_func gl_bind_texture;
 static gl_tex_parameteri_func gl_tex_parameteri;
 static gl_tex_image2d_func gl_tex_image2d;
+static gl_generate_mipmap_func gl_generate_mipmap;
+static gl_get_error_func gl_get_error;
 
 static int load_glfunc(void);
 
@@ -141,11 +149,18 @@ unsigned int img_gltexture(struct img_pixmap *img)
 
 	gl_gen_textures(1, &tex);
 	gl_bind_texture(GL_TEXTURE_2D, tex);
-	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	if(!gl_generate_mipmap) {
+		gl_tex_parameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, 1);
+		gl_get_error();	/* clear errors in case SGIS_generate_mipmap is not supported */
+	}
 	gl_tex_image2d(GL_TEXTURE_2D, 0, intfmt, img->width, img->height, 0, fmt, type, img->pixels);
+	if(gl_generate_mipmap) {
+		gl_generate_mipmap(GL_TEXTURE_2D);
+	}
 	return tex;
 }
 
@@ -216,6 +231,8 @@ static int load_glfunc(void)
 	gl_bind_texture = (gl_bind_texture_func)dlsym(RTLD_DEFAULT, "glBindTexture");
 	gl_tex_parameteri = (gl_tex_parameteri_func)dlsym(RTLD_DEFAULT, "glTexParameteri");
 	gl_tex_image2d = (gl_tex_image2d_func)dlsym(RTLD_DEFAULT, "glTexImage2D");
+	gl_generate_mipmap = (gl_generate_mipmap_func)dlsym(RTLD_DEFAULT, "glGenerateMipmap");
+	gl_get_error = (gl_get_error_func)dlsym(RTLD_DEFAULT, "glGetError");
 #endif
 
 #ifdef WIN32
@@ -225,8 +242,10 @@ static int load_glfunc(void)
 		gl_bind_texture = (gl_bind_texture_func)GetProcAddress(dll, "glBindTexture");
 		gl_tex_parameteri = (gl_tex_parameteri_func)GetProcAddress(dll, "glTexParameteri");
 		gl_tex_image2d = (gl_tex_image2d_func)GetProcAddress(dll, "glTexImage2D");
+		gl_generate_mipmap = (gl_generate_mipmap_func)GetProcAddress(dll, "glGenerateMipmap");
+		gl_get_error = (gl_get_error_func)GetProcAddress(dll, "glGetError");
 	}
 #endif
 
-	return (gl_gen_textures && gl_bind_texture && gl_tex_parameteri && gl_tex_image2d) ? 0 : -1;
+	return (gl_gen_textures && gl_bind_texture && gl_tex_parameteri && gl_tex_image2d && gl_get_error) ? 0 : -1;
 }
