@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "imago2.h"
 #include "ftype_module.h"
-#include "endian.h"
+#include "byteord.h"
 
 #ifdef __GNUC__
 #define PACKED	__attribute__((packed))
