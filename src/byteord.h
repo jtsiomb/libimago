@@ -15,8 +15,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ENDIAN_H_
-#define ENDIAN_H_
+#ifndef IMAGO_BYTEORD_H_
+#define IMAGO_BYTEORD_H_
 
 #include <stdint.h>
 #include "imago2.h"
@@ -71,4 +71,4 @@ uint32_t img_read_uint32(struct img_io *io);
 uint32_t img_read_uint32_inv(struct img_io *io);
 
 
-#endif	/* ENDIAN_H_ */
+#endif	/* IMAGO_BYTEORD_H_ */

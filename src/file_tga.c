@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "imago2.h"
 #include "ftype_module.h"
-#include "endian.h"
+#include "byteord.h"
 
 enum {
 	IMG_NONE,
