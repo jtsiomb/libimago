@@ -1,12 +1,9 @@
-dbg = -g
-opt =
-
 csrc = $(wildcard src/*.c)
 obj = $(csrc:.c=.o)
 lib_a = libimago.a
 
 somajor = 2
-sominor = 1
+sominor = 2
 sodir = lib
 
 CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) $(defs) -Isrc $(incdir)
