@@ -20,7 +20,8 @@ ifeq ($(sys), Darwin)
 	incdir += -I/opt/local/include -I/sw/local/include -I/usr/X11R6/include
 	libdir += -L/opt/local/lib -L/sw/local/lib -L/usr/X11R6/lib
 	LDFLAGS += -ldl
-else ifeq ($(sys), MINGW32)
+else
+ifeq ($(sys), MINGW32)
 	lib_so = libimago.dll
 	shared = -shared
 	sodir = bin
@@ -31,7 +32,8 @@ else
 	shared = -shared -Wl,-soname,$(soname)
 	pic = -fPIC
 	LDFLAGS += -ldl
-endif
+endif	# MINGW32
+endif	# Darwin
 
 ifeq ($(shell uname -s), IRIX)
 	# add nekoware and SGI freeware dirs to the include and lib paths

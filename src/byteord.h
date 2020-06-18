@@ -18,7 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef IMAGO_BYTEORD_H_
 #define IMAGO_BYTEORD_H_
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199900
 #include <stdint.h>
+#else
+#include <sys/types.h>
+#endif
 #include "imago2.h"
 
 #if  defined(__i386__) || defined(__ia64__) || defined(WIN32) || \
