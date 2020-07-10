@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2017 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2020 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -424,6 +424,7 @@ static int pixel_size(enum img_fmt fmt)
 	case IMG_FMT_RGB24:
 		return 3;
 	case IMG_FMT_RGBA32:
+	case IMG_FMT_BGRA32:
 		return 4;
 	case IMG_FMT_GREYF:
 		return sizeof(float);
@@ -431,6 +432,8 @@ static int pixel_size(enum img_fmt fmt)
 		return 3 * sizeof(float);
 	case IMG_FMT_RGBAF:
 		return 4 * sizeof(float);
+	case IMG_FMT_RGB565:
+		return 2;
 	default:
 		break;
 	}
