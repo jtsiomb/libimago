@@ -141,6 +141,7 @@ int img_save_pixels(const char *fname, void *pix, int xsz, int ysz, enum img_fmt
 
 	img_init(&img);
 	img.fmt = fmt;
+	img.pixelsz = pixel_size(fmt);
 	img.width = xsz;
 	img.height = ysz;
 	img.pixels = pix;
