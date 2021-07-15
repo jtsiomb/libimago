@@ -52,10 +52,10 @@ static void (*unpack[])(struct pixel*, void*, int) = {
 	unpack_grey8,
 	unpack_rgb24,
 	unpack_rgba32,
-	unpack_bgra32,
 	unpack_greyf,
 	unpack_rgbf,
 	unpack_rgbaf,
+	unpack_bgra32,
 	unpack_rgb565
 };
 
@@ -64,10 +64,10 @@ static void (*pack[])(void*, struct pixel*, int) = {
 	pack_grey8,
 	pack_rgb24,
 	pack_rgba32,
-	pack_bgra32,
 	pack_greyf,
 	pack_rgbf,
 	pack_rgbaf,
+	pack_bgra32,
 	pack_rgb565
 };
 
