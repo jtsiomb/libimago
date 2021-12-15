@@ -3,7 +3,7 @@ obj = $(csrc:.c=.o)
 lib_a = libimago.a
 
 somajor = 2
-sominor = 2
+sominor = 3
 sodir = lib
 
 CFLAGS = -pedantic -Wall $(opt) $(dbg) $(pic) $(defs) -Isrc $(incdir)
