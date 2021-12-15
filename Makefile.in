@@ -52,7 +52,7 @@ $(lib_so): $(obj)
 
 .PHONY: clean
 clean:
-	rm -f $(obj)
+	rm -f $(obj) $(lib_so) $(lib_a)
 
 .PHONY: distclean
 distclean:

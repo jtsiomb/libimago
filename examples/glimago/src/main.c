@@ -116,12 +116,20 @@ void draw_chess(int xdiv, int ydiv)
 
 void reshape(int x, int y)
 {
-	float rcp_aspect = (float)y / (float)x;
+	float s;
+
 	glViewport(0, 0, x, y);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-1, 1, -rcp_aspect, rcp_aspect, -1, 1);
+
+	if(x > y) {
+		s = (float)y / (float)x;
+		glOrtho(-1, 1, -s, s, -1, 1);
+	} else {
+		s = (float)x / (float)y;
+		glOrtho(-s, s, -1, 1, -1, 1);
+	}
 }
 
 void keyb(unsigned char key, int x, int y)
@@ -185,6 +193,6 @@ void next_image(void)
 	glutReshapeWindow(imglist[cur].width, imglist[cur].height);
 
 	title = alloca(strlen(imglist[cur].name) + 16);
-	sprintf(title, "[%d/%d] %s\n", cur + 1, nimg, imglist[cur].name);
+	sprintf(title, "[%d/%d] %s", cur + 1, nimg, imglist[cur].name);
 	glutSetWindowTitle(title);
 }
