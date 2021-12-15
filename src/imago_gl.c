@@ -195,6 +195,18 @@ unsigned int img_gltexture(struct img_pixmap *img)
 		}
 	}
 
+	if(img->fmt == IMG_FMT_IDX8) {
+		struct img_pixmap rgb;
+
+		img_init(&rgb);
+		if(img_copy(&rgb, img) == -1 || img_convert(&rgb, IMG_FMT_RGB24)) {
+			return 0;
+		}
+		tex = img_gltexture(&rgb);
+		img_destroy(&rgb);
+		return tex;
+	}
+
 	intfmt = img_glintfmt(img);
 	fmt = img_glfmt(img);
 	type = img_gltype(img);

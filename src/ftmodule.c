@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -44,7 +44,7 @@ int img_register_module(struct ftype_module *mod)
 	return 0;
 }
 
-struct ftype_module *img_find_format_module(struct img_io *io)
+struct ftype_module *img_find_format_module(struct img_io *io, const char *fname)
 {
 	struct list_node *node;
 
@@ -53,6 +53,7 @@ struct ftype_module *img_find_format_module(struct img_io *io)
 		done_init = 1;
 	}
 
+	/* first attempt magic format detection */
 	node = modules;
 	while(node) {
 		if(node->module->check(io) != -1) {
@@ -60,7 +61,9 @@ struct ftype_module *img_find_format_module(struct img_io *io)
 		}
 		node = node->next;
 	}
-	return 0;
+
+	/* fallback to detecting by suffix if possible */
+	return fname ? img_guess_format(fname) : 0;
 }
 
 struct ftype_module *img_guess_format(const char *fname)

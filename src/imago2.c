@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2020 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -91,7 +91,14 @@ int img_set_format(struct img_pixmap *img, enum img_fmt fmt)
 
 int img_copy(struct img_pixmap *dest, struct img_pixmap *src)
 {
-	return img_set_pixels(dest, src->width, src->height, src->fmt, src->pixels);
+	if(img_set_pixels(dest, src->width, src->height, src->fmt, src->pixels) == -1) {
+		return -1;
+	}
+
+	if(src->fmt == IMG_FMT_IDX8) {
+		*img_colormap(dest) = *img_colormap(src);
+	}
+	return 0;
 }
 
 int img_set_pixels(struct img_pixmap *img, int w, int h, enum img_fmt fmt, void *pix)
@@ -176,6 +183,7 @@ int img_load(struct img_pixmap *img, const char *fname)
 	if(!(fp = fopen(fname, "rb"))) {
 		return -1;
 	}
+	img_set_name(img, fname);
 	res = img_read_file(img, fp);
 	fclose(fp);
 	return res;
@@ -217,7 +225,7 @@ int img_read(struct img_pixmap *img, struct img_io *io)
 {
 	struct ftype_module *mod;
 
-	if((mod = img_find_format_module(io))) {
+	if((mod = img_find_format_module(io, img->name))) {
 		return mod->read(img, io);
 	}
 	return -1;
