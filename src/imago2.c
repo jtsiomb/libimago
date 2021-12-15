@@ -417,8 +417,6 @@ void img_getpixel4f(struct img_pixmap *img, int x, int y, float *r, float *g, fl
 
 struct img_colormap *img_colormap(struct img_pixmap *img)
 {
-	int cmap_offs;
-
 	if(img->fmt != IMG_FMT_IDX8 || !img->pixels) {
 		return 0;
 	}
