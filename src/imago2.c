@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "imago2.h"
-#include "ftype_module.h"
+#include "ftmodule.h"
 
 static int pixel_size(enum img_fmt fmt);
 static size_t def_read(void *buf, size_t bytes, void *uptr);

@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdlib.h>
 #include "imago2.h"
-#include "ftype_module.h"
+#include "ftmodule.h"
 #include "byteord.h"
 
 enum {

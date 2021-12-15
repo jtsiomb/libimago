@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <jpeglib.h>
 #include "imago2.h"
-#include "ftype_module.h"
+#include "ftmodule.h"
 
 #define INPUT_BUF_SIZE	512
 #define OUTPUT_BUF_SIZE	512

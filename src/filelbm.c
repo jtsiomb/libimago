@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #endif
 #include "imago2.h"
-#include "ftype_module.h"
+#include "ftmodule.h"
 #include "byteord.h"
 
 #ifdef __GNUC__

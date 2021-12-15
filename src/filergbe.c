@@ -16,7 +16,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "imago2.h"
-#include "ftype_module.h"
+#include "ftmodule.h"
 
 
 typedef struct {
