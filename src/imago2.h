@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2020 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -169,11 +169,14 @@ unsigned int img_fmt_glfmt(enum img_fmt fmt);
 unsigned int img_fmt_gltype(enum img_fmt fmt);
 /* Returns the equivalent OpenGL "internal format" as expected by the 3rd argument of glTexImage2D */
 unsigned int img_fmt_glintfmt(enum img_fmt fmt);
+/* same as above, but will return the sRGB variant type for 8bit per color channel images */
+unsigned int img_fmt_glintfmt_srgb(enum img_fmt fmt);
 
 /* Same as above, based on the pixel format of the supplied image */
 unsigned int img_glfmt(struct img_pixmap *img);
 unsigned int img_gltype(struct img_pixmap *img);
 unsigned int img_glintfmt(struct img_pixmap *img);
+unsigned int img_glintfmt_srgb(struct img_pixmap *img);
 
 /* Creates an OpenGL texture from the image, and returns the texture id, or 0 for failure */
 unsigned int img_gltexture(struct img_pixmap *img);

@@ -58,7 +58,7 @@ struct chdr {
 };
 
 #if defined(__WATCOMC__) || defined(_MSC_VER)
-#pragma push(pack, 1)
+#pragma pack(push, 1)
 #endif
 struct bitmap_header {
 	uint16_t width, height;
@@ -72,7 +72,7 @@ struct bitmap_header {
 	int16_t pgwidth, pgheight;
 } PACKED;
 #if defined(__WATCOMC__) || defined(_MSC_VER)
-#pragma pop(pack)
+#pragma pack(pop)
 #endif
 
 enum {
@@ -199,7 +199,7 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 
 	memset(img, 0, sizeof *img);
 
-	while(read_header(io, &hdr) != -1 && io->seek(0, SEEK_CUR, io->uptr) - start < size) {
+	while(read_header(io, &hdr) != -1 && io->seek(0, SEEK_CUR, io->uptr) - start < (int)size) {
 		switch(hdr.id) {
 		case IFF_BMHD:
 			assert(hdr.size == 20);

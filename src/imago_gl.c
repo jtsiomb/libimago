@@ -1,3 +1,20 @@
+/*
+libimago - a multi-format image file input/output library.
+Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "imago2.h"
 
 /* to avoid dependency to OpenGL, I'll define all the relevant GL macros manually */
@@ -7,6 +24,10 @@
 #define GL_LUMINANCE			0x1909
 #define GL_RGB					0x1907
 #define GL_RGBA					0x1908
+
+#define GL_SLUMINANCE			0x8c46
+#define GL_SRGB					0x8c40
+#define GL_SRGB_ALPHA			0x8c42
 
 #define GL_RGBA32F				0x8814
 #define GL_RGB32F				0x8815
@@ -116,6 +137,27 @@ unsigned int img_fmt_glintfmt(enum img_fmt fmt)
 	return 0;
 }
 
+unsigned int img_fmt_glintfmt_srgb(enum img_fmt fmt)
+{
+	switch(fmt) {
+	case IMG_FMT_GREY8:
+		return GL_SLUMINANCE;
+	case IMG_FMT_RGB24:
+		return GL_SRGB;
+	case IMG_FMT_RGBA32:
+		return GL_SRGB_ALPHA;
+	case IMG_FMT_GREYF:
+		return GL_LUMINANCE32F;
+	case IMG_FMT_RGBF:
+		return GL_RGB32F;
+	case IMG_FMT_RGBAF:
+		return GL_RGBA32F;
+	default:
+		break;
+	}
+	return 0;
+}
+
 unsigned int img_glfmt(struct img_pixmap *img)
 {
 	return img_fmt_glfmt(img->fmt);
@@ -129,6 +171,11 @@ unsigned int img_gltype(struct img_pixmap *img)
 unsigned int img_glintfmt(struct img_pixmap *img)
 {
 	return img_fmt_glintfmt(img->fmt);
+}
+
+unsigned int img_glintfmt_srgb(struct img_pixmap *img)
+{
+	return img_fmt_glintfmt_srgb(img->fmt);
 }
 
 unsigned int img_gltexture(struct img_pixmap *img)

@@ -18,11 +18,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef IMAGO_BYTEORD_H_
 #define IMAGO_BYTEORD_H_
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199900
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199900) || \
+	(defined(_MSC_VER) && _MSC_VER >= 1600) || \
+	(defined(__WATCOMC__) && __WATCOMC__ >= 1200)
 #include <stdint.h>
 #else
 #include <sys/types.h>
 #endif
+
+#if defined(__DOS__) && defined(__WATCOMC__) && __WATCOMC__ < 1200
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef long int32_t;
+typedef unsigned long uint32_t;
+typedef unsigned long uintptr_t;
+#endif
+
 #include "imago2.h"
 
 #if  defined(__i386__) || defined(__ia64__) || defined(WIN32) || \

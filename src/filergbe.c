@@ -232,24 +232,24 @@ static int rgbe_write_header(struct img_io *io, int width, int height, rgbe_head
 	}
 	buf = malloc(ptypelen > 120 ? ptypelen + 8 : 128);
 	sprintf(buf, "#?%s\n", programtype);
-	if(io->write(buf, strlen(buf), io->uptr) < 0)
+	if(io->write(buf, strlen(buf), io->uptr) <= 0)
 		goto err;
 	/* The #? is to identify file type, the programtype is optional. */
 	if(info && (info->valid & RGBE_VALID_GAMMA)) {
 		sprintf(buf, "GAMMA=%g\n", info->gamma);
-		if(io->write(buf, strlen(buf), io->uptr) < 0)
+		if(io->write(buf, strlen(buf), io->uptr) <= 0)
 			goto err;
 	}
 	if(info && (info->valid & RGBE_VALID_EXPOSURE)) {
 		sprintf(buf, "EXPOSURE=%g\n", info->exposure);
-		if(io->write(buf, strlen(buf), io->uptr) < 0)
+		if(io->write(buf, strlen(buf), io->uptr) <= 0)
 			goto err;
 	}
 	strcpy(buf, "FORMAT=32-bit_rle_rgbe\n\n");
-	if(io->write(buf, strlen(buf), io->uptr) < 0)
+	if(io->write(buf, strlen(buf), io->uptr) <= 0)
 		goto err;
 	sprintf(buf, "-Y %d +X %d\n", height, width);
-	if(io->write(buf, strlen(buf), io->uptr) < 0)
+	if(io->write(buf, strlen(buf), io->uptr) <= 0)
 		goto err;
 
 	free(buf);

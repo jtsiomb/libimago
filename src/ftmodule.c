@@ -114,5 +114,5 @@ struct ftype_module *img_get_module(int idx)
 	while(node && idx--) {
 		node = node->next;
 	}
-	return node->module;
+	return node ? node->module : 0;
 }
