@@ -71,7 +71,7 @@ struct tga_footer {
 static int check(struct img_io *io);
 static int read_tga(struct img_pixmap *img, struct img_io *io);
 static int write_tga(struct img_pixmap *img, struct img_io *io);
-static int read_pixel(struct img_io *io, int rdalpha, unsigned char *pix);
+static int read_pixel(struct img_io *io, int fmt, unsigned char *pix);
 
 int img_register_tga(void)
 {
@@ -109,10 +109,11 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 {
 	struct tga_header hdr;
 	unsigned long x, y;
-	int i, c;
+	int i, idx, c, r, g, b;
 	int rle_mode = 0, rle_pix_left = 0;
-	int rdalpha;
 	int pixel_bytes;
+	int fmt;
+	struct img_colormap cmap;
 
 	/* read header */
 	hdr.idlen = iofgetc(io);
@@ -131,24 +132,61 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 	}
 	hdr.img_desc = c;
 
-	if(!IS_RGBA(hdr.img_type)) {
-		fprintf(stderr, "libimago: only true color tga images are supported\n");
-		return -1;
-	}
-
 	io->seek(hdr.idlen, SEEK_CUR, io->uptr);	/* skip the image ID */
 
-	/* skip the color map if it exists */
+	/* read the color map if it exists */
 	if(hdr.cmap_type == 1) {
-		io->seek(hdr.cmap_len * hdr.cmap_entry_sz / 8, SEEK_CUR, io->uptr);
+		cmap.ncolors = hdr.cmap_len;
+
+		for(i=0; i<hdr.cmap_len; i++) {
+			switch(hdr.cmap_entry_sz) {
+			case 16:
+				c = img_read_int16_le(io);
+				r = (c & 0x7c00) >> 7;
+				g = (c & 0x03e0) >> 2;
+				b = (c & 0x001f) << 3;
+				break;
+
+			case 24:
+				b = iofgetc(io);
+				g = iofgetc(io);
+				r = iofgetc(io);
+				break;
+
+			case 32:
+				b = iofgetc(io);
+				g = iofgetc(io);
+				r = iofgetc(io);
+				iofgetc(io);	/* ignore attribute byte */
+			}
+
+			idx = i + hdr.cmap_first;
+			if(idx < 256) {
+				cmap.color[idx].r = r;
+				cmap.color[idx].g = g;
+				cmap.color[idx].b = b;
+				if(cmap.ncolors <= idx) cmap.ncolors = idx + 1;
+			}
+		}
 	}
 
 	x = hdr.img_width;
 	y = hdr.img_height;
-	rdalpha = hdr.img_desc & 0xf;
-	pixel_bytes = rdalpha ? 4 : 3;
 
-	if(img_set_pixels(img, x, y, rdalpha ? IMG_FMT_RGBA32 : IMG_FMT_RGB24, 0) == -1) {
+	if(hdr.img_type == IMG_CMAP || hdr.img_type == IMG_RLE_CMAP) {
+		if(hdr.img_bpp != 8) {
+			fprintf(stderr, "read_tga: indexed images with more than 8bpp not supported\n");
+			return -1;
+		}
+		pixel_bytes = 1;
+		fmt = IMG_FMT_IDX8;
+	} else {
+		int alpha = hdr.img_desc & 0xf;
+		pixel_bytes = alpha ? 4 : 3;
+		fmt = alpha ? IMG_FMT_RGBA32 : IMG_FMT_RGB24;
+	}
+
+	if(img_set_pixels(img, x, y, fmt, 0) == -1) {
 		return -1;
 	}
 
@@ -161,7 +199,7 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 		for(j=0; j<x; j++) {
 			/* if the image is raw, then just read the next pixel */
 			if(!IS_RLE(hdr.img_type)) {
-				if(read_pixel(io, rdalpha, ptr) == -1) {
+				if(read_pixel(io, fmt, ptr) == -1) {
 					return -1;
 				}
 			} else {
@@ -171,7 +209,7 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 				if(rle_pix_left) {
 					/* if it's a raw packet, read the next pixel, otherwise keep the same */
 					if(!rle_mode) {
-						if(read_pixel(io, rdalpha, ptr) == -1) {
+						if(read_pixel(io, fmt, ptr) == -1) {
 							return -1;
 						}
 					} else {
@@ -186,7 +224,7 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 					rle_mode = (phdr & 128);		/* last bit shows the mode for this packet (1: rle, 0: raw) */
 					rle_pix_left = (phdr & ~128);	/* the rest gives the count of pixels minus one (we also read one here, so no +1) */
 					/* and read the first pixel of the packet */
-					if(read_pixel(io, rdalpha, ptr) == -1) {
+					if(read_pixel(io, fmt, ptr) == -1) {
 						return -1;
 					}
 				}
@@ -194,6 +232,11 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 
 			ptr += pixel_bytes;
 		}
+	}
+
+	if(fmt == IMG_FMT_IDX8) {
+		struct img_colormap *dest = img_colormap(img);
+		*dest = cmap;
 	}
 
 	return 0;
@@ -204,9 +247,18 @@ static int write_tga(struct img_pixmap *img, struct img_io *io)
 	return -1;	/* TODO */
 }
 
-static int read_pixel(struct img_io *io, int rdalpha, unsigned char *pix)
+static int read_pixel(struct img_io *io, int fmt, unsigned char *pix)
 {
 	int r, g, b, a;
+
+	if(fmt == IMG_FMT_IDX8) {
+		if((b = iofgetc(io)) == -1) {
+			return -1;
+		}
+		*pix = b;
+		return 0;
+	}
+
 	if((b = iofgetc(io)) == -1 || (g = iofgetc(io)) == -1 || (r = iofgetc(io)) == -1) {
 		return -1;
 	}
@@ -215,7 +267,7 @@ static int read_pixel(struct img_io *io, int rdalpha, unsigned char *pix)
 	pix[1] = g;
 	pix[2] = b;
 
-	if(rdalpha) {
+	if(fmt == IMG_FMT_RGBA32) {
 		if((a = iofgetc(io)) == -1) {
 			return -1;
 		}

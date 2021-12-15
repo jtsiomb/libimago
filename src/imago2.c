@@ -21,6 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "imago2.h"
 #include "ftmodule.h"
+#include "byteord.h"
+
+/* calculate int-aligned offset to colormap, right after the end of the pixel data */
+#define CMAPPTR(fb, fbsz)	\
+	(struct img_colormap*)((((uintptr_t)fb) + (fbsz) + sizeof(int) - 1) & ~(sizeof(int) - 1))
 
 static int pixel_size(enum img_fmt fmt);
 static size_t def_read(void *buf, size_t bytes, void *uptr);
@@ -93,15 +98,21 @@ int img_set_pixels(struct img_pixmap *img, int w, int h, enum img_fmt fmt, void 
 {
 	void *newpix;
 	int pixsz = pixel_size(fmt);
+	int bsz = w * h * pixsz;
 
-	if(!(newpix = malloc(w * h * pixsz))) {
+	if(fmt == IMG_FMT_IDX8) {
+		/* add space for the colormap, and space to align it to sizeof(int) */
+		bsz += sizeof(struct img_colormap) + sizeof(int) - 1;
+	}
+
+	if(!(newpix = malloc(bsz))) {
 		return -1;
 	}
 
 	if(pix) {
 		memcpy(newpix, pix, w * h * pixsz);
 	} else {
-		memset(newpix, 0, w * h * pixsz);
+		memset(newpix, 0, bsz);
 	}
 
 	free(img->pixels);
@@ -396,6 +407,17 @@ void img_getpixel4f(struct img_pixmap *img, int x, int y, float *r, float *g, fl
 	}
 }
 
+struct img_colormap *img_colormap(struct img_pixmap *img)
+{
+	int cmap_offs;
+
+	if(img->fmt != IMG_FMT_IDX8 || !img->pixels) {
+		return 0;
+	}
+
+	return CMAPPTR(img->pixels, img->width * img->height * img->pixelsz);
+}
+
 void img_io_set_user_data(struct img_io *io, void *uptr)
 {
 	io->uptr = uptr;
@@ -421,6 +443,7 @@ static int pixel_size(enum img_fmt fmt)
 {
 	switch(fmt) {
 	case IMG_FMT_GREY8:
+	case IMG_FMT_IDX8:
 		return 1;
 	case IMG_FMT_RGB24:
 		return 3;
