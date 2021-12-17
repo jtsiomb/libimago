@@ -101,7 +101,6 @@ static int write_file(struct img_pixmap *img, struct img_io *io);
 
 static int read_header(struct img_io *io, struct chdr *hdr);
 static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct img_pixmap *img);
-static void convert_rgb(struct img_pixmap *img, unsigned char *pal);
 static int read_bmhd(struct img_io *io, struct bitmap_header *bmhd);
 static int read_crng(struct img_io *io, struct crng *crng);
 static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct img_pixmap *img);
@@ -194,7 +193,7 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 	struct bitmap_header bmhd;
 	struct crng crng;
 	/*struct colrange *crnode;*/
-	unsigned char pal[3 * 256];
+	struct img_colormap cmap;
 	long start = io->seek(0, SEEK_CUR, io->uptr);
 
 	memset(img, 0, sizeof *img);
@@ -213,15 +212,15 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 				fprintf(stderr, "libimago: %d planes found, only paletized LBM files supported\n", bmhd.nplanes);
 				return -1;
 			}
-			if(img_set_pixels(img, img->width, img->height, IMG_FMT_RGB24, 0)) {
+			if(img_set_pixels(img, img->width, img->height, IMG_FMT_IDX8, 0)) {
 				return -1;
 			}
 			break;
 
 		case IFF_CMAP:
-			assert(hdr.size / 3 <= 256);
-
-			if(io->read(pal, hdr.size, io->uptr) < hdr.size) {
+			cmap.ncolors = hdr.size / 3;
+			assert(cmap.ncolors <= 256);
+			if(io->read(cmap.color, hdr.size, io->uptr) < hdr.size) {
 				return -1;
 			}
 			break;
@@ -264,7 +263,7 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 				}
 			}
 
-			convert_rgb(img, pal);
+			*img_colormap(img) = cmap;
 
 			res = 0;	/* sucessfully read image */
 			break;
@@ -281,23 +280,6 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 
 	return res;
 }
-
-static void convert_rgb(struct img_pixmap *img, unsigned char *pal)
-{
-	int i, npixels = img->width * img->height;
-	unsigned char *sptr, *dptr = img->pixels;
-
-	dptr = (unsigned char*)img->pixels + npixels * 3;
-	sptr = (unsigned char*)img->pixels + npixels;
-
-	for(i=0; i<npixels; i++) {
-		int c = *--sptr;
-		*--dptr = pal[c * 3 + 2];
-		*--dptr = pal[c * 3 + 1];
-		*--dptr = pal[c * 3];
-	}
-}
-
 
 static int read_bmhd(struct img_io *io, struct bitmap_header *bmhd)
 {
