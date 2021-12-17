@@ -3,15 +3,9 @@ bin = sconv
 
 CC = gcc
 CFLAGS = -pedantic -Wall -g -I../../src
-LDFLAGS = $(lib)
+LDFLAGS = ../../libimago.a -lpng -lz -ljpeg
 
-ifeq ($(shell uname -s), Darwin)
-	lib = ../../libimago.dylib
-else
-	lib = ../../libimago.so.2.0
-endif
-
-$(bin): $(obj) $(lib)
+$(bin): $(obj) ../../libimago.a
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
 .PHONY: clean

@@ -150,7 +150,6 @@ static int read_file(struct img_pixmap *img, struct img_io *io)
 	return 0;
 }
 
-/* TODO: write indexed color images */
 static int write_file(struct img_pixmap *img, struct img_io *io)
 {
 	png_struct *png;
@@ -160,6 +159,7 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	unsigned char **rows;
 	unsigned char *pixptr;
 	int i, coltype;
+	struct img_colormap *cmap;
 
 	img_init(&tmpimg);
 
@@ -199,6 +199,11 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	png_set_IHDR(png, info, img->width, img->height, 8, coltype, PNG_INTERLACE_NONE,
 			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 	png_set_text(png, info, &txt, 1);
+
+	if(img->fmt == IMG_FMT_IDX8) {
+		cmap = img_colormap(img);
+		png_set_PLTE(png, info, (png_color*)cmap->color, cmap->ncolors);
+	}
 
 	if(!(rows = malloc(img->height * sizeof *rows))) {
 		png_destroy_write_struct(&png, &info);
