@@ -381,6 +381,8 @@ void img_vflip(struct img_pixmap *img)
 	char *aptr, *bptr, *tmp;
 	int scansz = img->pixelsz * img->width;
 
+	if(scansz <= 0 || img->height <= 1) return;
+
 	tmp = alloca(scansz);
 	aptr = img->pixels;
 	bptr = aptr + (img->height - 1) * scansz;
@@ -398,6 +400,8 @@ void img_hflip(struct img_pixmap *img)
 {
 	int i;
 	char *aptr, *bptr, *tmp;
+
+	if(img->width <= 1 || img->height <= 0) return;
 
 	tmp = alloca(img->pixelsz);
 	for(i=0; i<img->height; i++) {
