@@ -141,6 +141,10 @@ int img_write(struct img_pixmap *img, struct img_io *io);
 /* Converts an image to the specified pixel format */
 int img_convert(struct img_pixmap *img, enum img_fmt tofmt);
 
+/* Flip the image vertically or horizontally */
+void img_vflip(struct img_pixmap *img);
+void img_hflip(struct img_pixmap *img);
+
 /* Converts an image from an integer pixel format to the corresponding floating point one */
 int img_to_float(struct img_pixmap *img);
 /* Converts an image from a floating point pixel format to the corresponding integer one */

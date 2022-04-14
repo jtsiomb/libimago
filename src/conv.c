@@ -16,6 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <string.h>
+#if defined(__WATCOMC__) || defined(WIN32)
+#include <malloc.h>
+#else
+#ifndef __FreeBSD__
+#include <alloca.h>
+#endif
+#endif
 #include "imago2.h"
 #include "inttypes.h"
 
@@ -366,5 +373,43 @@ static void pack_rgb565(void *pptr, struct pixel *unp, int count)
 		if(b > 31) b = 31;
 		*pix++ = (r << 11) | (g << 5) | b;
 		unp++;
+	}
+}
+
+void img_vflip(struct img_pixmap *img)
+{
+	char *aptr, *bptr, *tmp;
+	int scansz = img->pixelsz * img->width;
+
+	tmp = alloca(scansz);
+	aptr = img->pixels;
+	bptr = aptr + (img->height - 1) * scansz;
+
+	while(aptr < bptr) {
+		memcpy(tmp, aptr, scansz);
+		memcpy(aptr, bptr, scansz);
+		memcpy(bptr, tmp, scansz);
+		aptr += scansz;
+		bptr -= scansz;
+	}
+}
+
+void img_hflip(struct img_pixmap *img)
+{
+	int i;
+	char *aptr, *bptr, *tmp;
+
+	tmp = alloca(img->pixelsz);
+	for(i=0; i<img->height; i++) {
+		aptr = (char*)img->pixels + img->width * img->pixelsz * i;
+		bptr = aptr + img->width - 1;
+
+		while(aptr < bptr) {
+			memcpy(tmp, aptr, img->pixelsz);
+			memcpy(aptr, bptr, img->pixelsz);
+			memcpy(bptr, tmp, img->pixelsz);
+			aptr++;
+			bptr--;
+		}
 	}
 }
