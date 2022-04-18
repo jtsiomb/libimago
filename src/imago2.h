@@ -42,6 +42,12 @@ enum img_fmt {
 	NUM_IMG_FMT
 };
 
+enum img_dither {
+	IMG_DITHER_NONE,
+	IMG_DITHER_ORDERED,
+	IMG_DITHER_FLOYD_STEINBERG
+};
+
 struct img_pixmap {
 	void *pixels;
 	int width, height;
@@ -140,6 +146,15 @@ int img_write(struct img_pixmap *img, struct img_io *io);
 
 /* Converts an image to the specified pixel format */
 int img_convert(struct img_pixmap *img, enum img_fmt tofmt);
+
+/* Quantize an image to a have at most certain maximum number of colors,
+ * converting it to IMG_FMT_IDX8 in the process.
+ * The number of colors must be at most 256.
+ * The last argument defines the dithering algorithm to be used.
+ *
+ * C++: the dither argument is optional and defaults to IMG_DITHER_NONE
+ */
+int img_quantize(struct img_pixmap *img, int maxcol, IMG_OPTARG(enum img_dither dither, IMG_DITHER_NONE));
 
 /* Flip the image vertically or horizontally */
 void img_vflip(struct img_pixmap *img);

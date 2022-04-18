@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2022 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -97,9 +97,7 @@ int img_convert(struct img_pixmap *img, enum img_fmt tofmt)
 	}
 
 	if(tofmt == IMG_FMT_IDX8) {
-		/* TODO */
-		fprintf(stderr, "imago: conversions to indexed not implemented yet\n");
-		return 0;
+		return img_quantize(img, 256, 0);
 	}
 
 	img_init(&nimg);
