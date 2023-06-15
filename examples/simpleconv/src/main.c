@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <imago2.h>
 
+
 int main(int argc, char **argv)
 {
-	const char *infile = "foo.jpg";
-	const char *outfile = "bar.jpg";
+	const char *infile = 0, *outfile = 0;
 	int i, j, xsz = 512, ysz = 512;
 	struct img_pixmap img;
 
@@ -19,14 +19,29 @@ int main(int argc, char **argv)
 				outfile = argv[++i];
 				break;
 
+			case 'h':
+				printf("Usage: %s <from> <to>\n", argv[0]);
+				return 0;
+
 			default:
 				fprintf(stderr, "invalid option: %s\n", argv[i]);
 				return 1;
 			}
 		} else {
-			fprintf(stderr, "invalid argument: %s\n", argv[i]);
-			return 1;
+			if(!infile) {
+				infile = argv[i];
+			} else if(!outfile) {
+				outfile = argv[i];
+			} else {
+				fprintf(stderr, "invalid argument: %s\n", argv[i]);
+				return 1;
+			}
 		}
+	}
+
+	if(!infile || !outfile) {
+		fprintf(stderr, "Usage: %s <from> <to>\n", argv[0]);
+		return 1;
 	}
 
 	img_init(&img);

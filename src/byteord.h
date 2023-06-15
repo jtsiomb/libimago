@@ -87,5 +87,8 @@ void img_write_uint16_inv(struct img_io *io, uint16_t val);
 uint32_t img_read_uint32(struct img_io *io);
 uint32_t img_read_uint32_inv(struct img_io *io);
 
+#define img_bswap_int16(x) \
+	(((int16_t)(x) << 8) | (((int16_t)(x) >> 8) & 0xff))
+
 
 #endif	/* IMAGO_BYTEORD_H_ */

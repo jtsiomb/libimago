@@ -24,6 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ftmodule.h"
 #include "byteord.h"
 
+#ifdef __GNUC__
+#define PACKED	__attribute__((packed))
+#endif
+
+
 enum {
 	IMG_NONE,
 	IMG_CMAP,
@@ -38,6 +43,9 @@ enum {
 #define IS_RLE(x)	((x) >= IMG_RLE_CMAP)
 #define IS_RGBA(x)	((x) == IMG_RGBA || (x) == IMG_RLE_RGBA)
 
+#if defined(__WATCOMC__) || defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 struct tga_header {
 	uint8_t idlen;			/* id field length */
@@ -59,19 +67,25 @@ struct tga_header {
 							 * bits 0 - 3: alpha or overlay bits
 							 * bits 5 & 4: origin (0 = bottom/left, 1 = top/right)
 							 * bits 7 & 6: data interleaving */
-};
+} PACKED;
 
 struct tga_footer {
 	uint32_t ext_off;		/* extension area offset */
 	uint32_t devdir_off;	/* developer directory offset */
 	char sig[18];				/* signature with . and \0 */
-};
+} PACKED;
+
+#if defined(__WATCOMC__) || defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 
 static int check(struct img_io *io);
 static int read_tga(struct img_pixmap *img, struct img_io *io);
 static int write_tga(struct img_pixmap *img, struct img_io *io);
+static int write_header(struct tga_header *hdr, struct img_io *io);
 static int read_pixel(struct img_io *io, int fmt, unsigned char *pix);
+static int fmt_to_tga_type(int fmt);
 
 int img_register_tga(void)
 {
@@ -242,9 +256,129 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 	return 0;
 }
 
+/* TODO: implement RLE compression */
 static int write_tga(struct img_pixmap *img, struct img_io *io)
 {
-	return -1;	/* TODO */
+	int i, j, res = -1;
+	struct tga_header hdr = {0};
+	struct tga_footer foot = {0};
+	struct img_pixmap tmpimg;
+	size_t sz;
+	struct img_colormap tmpcmap, *cmap = 0;
+	unsigned char *pixptr, *scanline;
+
+	img_init(&tmpimg);
+
+	/* if the input image is floating-point, we need to convert it to integer */
+	if(img_is_float(img)) {
+		if(img_copy(&tmpimg, img) == -1) {
+			goto end;
+		}
+		if(img_to_integer(&tmpimg) == -1) {
+			goto end;
+		}
+		img = &tmpimg;
+
+	} else if(img->fmt == IMG_FMT_RGB565) {
+		/* if it's 565 just convert it to RGB24 first */
+		if(img_copy(&tmpimg, img) == -1) {
+			goto end;
+		}
+		if(img_convert(&tmpimg, IMG_FMT_RGB24) == -1) {
+			goto end;
+		}
+		img = &tmpimg;
+	}
+
+	hdr.img_type = fmt_to_tga_type(img->fmt);
+	hdr.img_width = img->width;
+	hdr.img_height = img->height;
+	hdr.img_bpp = img->pixelsz * 8;
+	hdr.img_desc = 0x20;	/* origin: top-left */
+	if(img_has_alpha(img)) {
+		hdr.img_desc |= 8;
+	}
+
+	if(img->fmt == IMG_FMT_IDX8) {
+		cmap = img_colormap(img);
+		hdr.cmap_len = cmap->ncolors;
+		hdr.cmap_entry_sz = 24;
+		hdr.cmap_type = 1;
+	}
+
+	if(write_header(&hdr, io) == -1) {
+		goto end;
+	}
+
+	if(cmap) {
+		for(i=0; i<cmap->ncolors; i++) {
+			tmpcmap.color[i].r = cmap->color[i].b;
+			tmpcmap.color[i].g = cmap->color[i].g;
+			tmpcmap.color[i].b = cmap->color[i].r;
+		}
+		sz = cmap->ncolors * 3;
+		if(io->write(tmpcmap.color, sz, io->uptr) < sz) {
+			goto end;
+		}
+	}
+
+	if(img->fmt == IMG_FMT_GREY8 || img->fmt == IMG_FMT_IDX8) {
+		sz = img->height * img->width * img->pixelsz;
+		if(io->write(img->pixels, sz, io->uptr) < sz) {
+			goto end;
+		}
+	} else {
+		sz = img->width * img->pixelsz;
+		if(!(scanline = malloc(sz))) {
+			goto end;
+		}
+
+		pixptr = img->pixels;
+		for(i=0; i<img->height; i++) {
+			unsigned char *dest = scanline;
+			for(j=0; j<img->width; j++) {
+				dest[0] = pixptr[2];
+				dest[1] = pixptr[1];
+				dest[2] = pixptr[0];
+				if(img->fmt == IMG_FMT_RGBA32) {
+					dest[3] = pixptr[3];
+				}
+				pixptr += img->pixelsz;
+				dest += img->pixelsz;
+			}
+			if(io->write(scanline, sz, io->uptr) < sz) {
+				free(scanline);
+				goto end;
+			}
+		}
+
+		free(scanline);
+	}
+
+	strcpy(foot.sig, "TRUEVISION-XFILE.");
+	io->write(&foot, sizeof foot, io->uptr);
+
+	res = 0;
+end:
+	img_destroy(&tmpimg);
+	return res;
+}
+
+static int write_header(struct tga_header *hdr, struct img_io *io)
+{
+#ifdef IMAGO_BIG_ENDIAN
+	hdr->cmap_first = img_bswap_int16(hdr->cmap_first);
+	hdr->cmap_len = img_bswap_int16(hdr->cmap_len);
+	hdr->img_x = img_bswap_int16(hdr->img_x);
+	hdr->img_y = img_bswap_int16(hdr->img_y);
+	hdr->img_width = img_bswap_int16(hdr->img_width);
+	hdr->img_height = img_bswap_int16(hdr->img_height);
+#endif
+
+	if(io->write(hdr, sizeof *hdr, io->uptr) < sizeof *hdr) {
+		return -1;
+	}
+	return 0;
 }
 
 static int read_pixel(struct img_io *io, int fmt, unsigned char *pix)
@@ -274,4 +408,21 @@ static int read_pixel(struct img_io *io, int fmt, unsigned char *pix)
 		pix[3] = a;
 	}
 	return 0;
+}
+
+static int fmt_to_tga_type(int fmt)
+{
+	switch(fmt) {
+	case IMG_FMT_GREY8:
+		return IMG_BW;
+	case IMG_FMT_IDX8:
+		return IMG_CMAP;
+	case IMG_FMT_RGB24:
+	case IMG_FMT_RGBA32:
+	case IMG_FMT_RGB565:
+		return IMG_RGBA;
+	default:
+		break;
+	}
+	return -1;
 }
