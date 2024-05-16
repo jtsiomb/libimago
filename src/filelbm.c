@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#if defined(__WATCOMC__) || defined(WIN32)
+#if defined(__WATCOMC__) || defined(WIN32) || defined(MSDOS)
 #include <malloc.h>
 #else
 #ifndef __FreeBSD__
@@ -34,6 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef __GNUC__
 #define PACKED	__attribute__((packed))
+#else
+#define PACKED
 #endif
 
 #define MKID(a, b, c, d)	(((a) << 24) | ((b) << 16) | ((c) << 8) | (d))
