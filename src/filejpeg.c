@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -94,17 +95,40 @@ static int check(struct img_io *io)
 	return 0;
 }
 
+/* error manager, which includes jump address field. */
+struct error_mgr {
+	struct jpeg_error_mgr root;
+	jmp_buf jmpbuf;
+};
+
+/* non-exiting error handler callback */
+static void jpeg_error_exit_callback(j_common_ptr cinfo)
+{
+	struct error_mgr *myerr = (struct error_mgr*)cinfo->err;
+	cinfo->err->output_message(cinfo);
+	longjmp(myerr->jmpbuf, 1);
+}
+
 static int read(struct img_pixmap *img, struct img_io *io)
 {
 	int i, nlines = 0;
 	struct jpeg_decompress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	struct error_mgr jerr;
 	struct src_mgr src;
 	unsigned char **scanlines;
 
 	io->seek(0, SEEK_CUR, io->uptr);
 
-	cinfo.err = jpeg_std_error(&jerr);	/* XXX change... */
+	cinfo.err = jpeg_std_error(&(jerr.root));
+	jerr.root.error_exit = jpeg_error_exit_callback;
+
+	if(setjmp(jerr.jmpbuf)) {
+		/* libjpeg raised an error, cleanup and return */
+		jpeg_destroy_decompress(&cinfo);
+		free(scanlines);
+		return -1;
+	}
+
 	jpeg_create_decompress(&cinfo);
 
 	src.pub.init_source = init_source;
@@ -150,7 +174,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 {
 	int i, nlines = 0;
 	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	struct error_mgr jerr;
 	struct dst_mgr dest;
 	struct img_pixmap tmpimg;
 	unsigned char **scanlines;
@@ -177,7 +201,17 @@ static int write(struct img_pixmap *img, struct img_io *io)
 		scanlines[i] = scanlines[i - 1] + img->width * img->pixelsz;
 	}
 
-	cinfo.err = jpeg_std_error(&jerr);	/* XXX */
+	cinfo.err = jpeg_std_error(&jerr.root);
+	jerr.root.error_exit = jpeg_error_exit_callback;
+
+	if(setjmp(jerr.jmpbuf)) {
+		/* libjpeg raised an error, cleanup and return */
+		jpeg_destroy_compress(&cinfo);
+		free(scanlines);
+		img_destroy(&tmpimg);
+		return -1;
+	}
+
 	jpeg_create_compress(&cinfo);
 
 	dest.pub.init_destination = init_destination;
