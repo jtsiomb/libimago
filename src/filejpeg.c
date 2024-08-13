@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// jump buffer
+#include <setjmp.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -94,17 +96,58 @@ static int check(struct img_io *io)
 	return 0;
 }
 
+/* Create new layout of error manager, which includes jump address field. */
+struct non_exiting_error_mgr {
+	/* similar fields of root / parent object */
+  struct jpeg_error_mgr root;
+  /* jump address for return to caller */
+  jmp_buf setjmp_buffer;
+};
+
+/* Define error message print function to be used in callback. */
+typedef void (*print_error_message_fn_t)(j_common_ptr cinfo);
+
+/*
+ * Callback which replaces the default error handle and hands off control back
+ * to where the jump buffer is pointing.
+ */
+METHODDEF(void)
+jpeg_error_exit_callback(j_common_ptr cinfo)
+{
+  /* Base cinfo->err really points to a non_exiting_error_mgr struct. */
+  struct non_exiting_error_mgr* myerr =
+    (struct non_exiting_error_mgr*)cinfo->err;
+
+  /* Print error message. */
+  print_error_message_fn_t print_error = *cinfo->err->output_message;
+  print_error(cinfo);
+
+  /* Return control to the setjmp address stored in buffer. */
+  longjmp(myerr->setjmp_buffer, 1);
+}
+
 static int read(struct img_pixmap *img, struct img_io *io)
 {
 	int i, nlines = 0;
 	struct jpeg_decompress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	struct non_exiting_error_mgr jerr;
 	struct src_mgr src;
 	unsigned char **scanlines;
 
 	io->seek(0, SEEK_CUR, io->uptr);
 
-	cinfo.err = jpeg_std_error(&jerr);	/* XXX change... */
+	cinfo.err = jpeg_std_error(&(jerr.root));
+	jerr.root.error_exit = jpeg_error_exit_callback;
+	/* Establish the setjmp return context for jpeg_error_exit_callback to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		* We need to clean up the JPEG object, close the input file, and return.
+		*/
+		jpeg_destroy_decompress(&cinfo);
+		free(scanlines);
+		return -1;
+	}
+
 	jpeg_create_decompress(&cinfo);
 
 	src.pub.init_source = init_source;
@@ -150,7 +193,7 @@ static int write(struct img_pixmap *img, struct img_io *io)
 {
 	int i, nlines = 0;
 	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	struct non_exiting_error_mgr jerr;
 	struct dst_mgr dest;
 	struct img_pixmap tmpimg;
 	unsigned char **scanlines;
@@ -177,7 +220,19 @@ static int write(struct img_pixmap *img, struct img_io *io)
 		scanlines[i] = scanlines[i - 1] + img->width * img->pixelsz;
 	}
 
-	cinfo.err = jpeg_std_error(&jerr);	/* XXX */
+	cinfo.err = jpeg_std_error(&jerr.root);
+	jerr.root.error_exit = jpeg_error_exit_callback;
+	/* Establish the setjmp return context for jpeg_error_exit_callback to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		* We need to clean up the JPEG object, close the input file, and return.
+		*/
+		jpeg_destroy_decompress(&cinfo);
+		free(scanlines);
+		img_destroy(&tmpimg);
+		return -1;
+	}
+
 	jpeg_create_compress(&cinfo);
 
 	dest.pub.init_destination = init_destination;
