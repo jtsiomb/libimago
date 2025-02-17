@@ -16,7 +16,7 @@ Currently supported file formats:
 
 License
 -------
-Copyright (C) 2010-2019 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2025 John Tsiombikas <nuclear@mutantstargoat.com>
 
 You may freely use, modify and/or redistribute libimago, under the terms of the
 GNU Lesser General Public License (LGPL) version 3 (or at your option, any
@@ -25,7 +25,7 @@ later version published by the Free Software Foundation). See `COPYING` and
 
 Download
 --------
-Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.2.tar.gz
+Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.3.tar.gz
 
 Grab the source code from github: https://github.com/jtsiomb/libimago
 
