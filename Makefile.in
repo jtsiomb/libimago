@@ -60,7 +60,7 @@ distclean:
 
 .PHONY: install
 install: $(lib_so) $(lib_a)
-	mkdir -p $(DESTDIR)$(PREFIX)/include $(DESTDIR)$(PREFIX)/lib
+	mkdir -p $(DESTDIR)$(PREFIX)/include $(DESTDIR)$(PREFIX)/lib $(DESTDIR)$(PREFIX)/$(sodir)
 	cp src/imago2.h $(DESTDIR)$(PREFIX)/include/imago2.h
 	cp $(lib_so) $(DESTDIR)$(PREFIX)/$(sodir)/$(lib_so)
 	cp $(lib_a) $(DESTDIR)$(PREFIX)/lib/$(lib_a)
