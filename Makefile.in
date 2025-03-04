@@ -12,7 +12,7 @@ LDFLAGS = $(libdir) $(ldflags_png) $(ldflags_jpeg)
 incdir = -I$(PREFIX)/include
 libdir = -L$(PREFIX)/lib
 
-sys := $(patsubst MINGW32%,MINGW32,$(shell uname -s))
+sys := $(patsubst MINGW%,mingw,$(shell uname -s))
 ifeq ($(sys), Darwin)
 	lib_so = libimago.dylib
 	shared = -dynamiclib
@@ -21,7 +21,7 @@ ifeq ($(sys), Darwin)
 	libdir += -L/opt/local/lib -L/sw/local/lib -L/usr/X11R6/lib
 	LDFLAGS += -ldl
 else
-ifeq ($(sys), MINGW32)
+ifeq ($(sys), mingw)
 	lib_so = libimago.dll
 	shared = -shared
 	sodir = bin
