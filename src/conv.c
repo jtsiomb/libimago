@@ -415,3 +415,36 @@ void img_hflip(struct img_pixmap *img)
 		}
 	}
 }
+
+void img_premul_alpha(struct img_pixmap *img)
+{
+	unsigned int i, npix;
+
+	if(!img_has_alpha(img)) return;
+
+	npix = img->width * img->height;
+	if(img_is_float(img)) {
+		float *pptr = img->pixels;
+
+		for(i=0; i<npix; i++) {
+			pptr[0] *= pptr[3];
+			pptr[1] *= pptr[3];
+			pptr[2] *= pptr[3];
+			pptr += 4;
+		}
+	} else {
+		unsigned int r, g, b, a;
+		unsigned char *pptr = img->pixels;
+
+		for(i=0; i<npix; i++) {
+			r = pptr[0];
+			g = pptr[1];
+			b = pptr[2];
+			a = pptr[3];
+			pptr[0] = (r * a) >> 8;
+			pptr[1] = (g * a) >> 8;
+			pptr[2] = (b * a) >> 8;
+			pptr += 4;
+		}
+	}
+}

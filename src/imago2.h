@@ -160,6 +160,8 @@ int img_quantize(struct img_pixmap *img, int maxcol, IMG_OPTARG(enum img_dither 
 void img_vflip(struct img_pixmap *img);
 void img_hflip(struct img_pixmap *img);
 
+void img_premul_alpha(struct img_pixmap *img);
+
 /* Converts an image from an integer pixel format to the corresponding floating point one */
 int img_to_float(struct img_pixmap *img);
 /* Converts an image from a floating point pixel format to the corresponding integer one */
