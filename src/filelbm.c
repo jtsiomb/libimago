@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2017 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2017-2026 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -221,7 +221,10 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 
 		case IFF_CMAP:
 			cmap.ncolors = hdr.size / 3;
-			assert(cmap.ncolors <= 256);
+			if(cmap.ncolors > 256) {
+				fprintf(stderr, "libimago: %d colors in CMAP, LBM files with more than 256 colors are not supported\n", cmap.ncolors);
+				return -1;
+			}
 			if(io->read(cmap.color, hdr.size, io->uptr) < hdr.size) {
 				return -1;
 			}
@@ -318,7 +321,7 @@ static int read_crng(struct img_io *io, struct crng *crng)
 static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct img_pixmap *img)
 {
 	int i, j, k, bitidx;
-	int rowsz = img->width / 8;
+	int rowsz = (img->width + 7) / 8;
 	unsigned char *src, *dest = img->pixels;
 	unsigned char *rowbuf = alloca(rowsz);
 
@@ -406,6 +409,7 @@ static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, 
 
 		if(ctl >= 0) {
 			count = ctl + 1;
+			if(count > width - x) count = width - x;
 			if(io->read(scanline, count, io->uptr) < count) return -1;
 			scanline += count;
 
@@ -413,6 +417,8 @@ static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, 
 			unsigned char pixel;
 			count = 1 - ctl;
 			if(io->read(&pixel, 1, io->uptr) < 1) return -1;
+
+			if(count > width - x) count = width - x;
 
 			for(i=0; i<count; i++) {
 				*scanline++ = pixel;
