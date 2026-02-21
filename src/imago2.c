@@ -104,8 +104,16 @@ int img_copy(struct img_pixmap *dest, struct img_pixmap *src)
 int img_set_pixels(struct img_pixmap *img, int w, int h, enum img_fmt fmt, void *pix)
 {
 	void *newpix;
-	int pixsz = pixel_size(fmt);
-	int bsz = w * h * pixsz;
+	int pixsz;
+	long bsz;
+
+	/* check if the dimensions are ridiculous and can overflow the size calculation */
+	if(w > 23170 || h > 23170) {
+		return -1;
+	}
+
+	pixsz = pixel_size(fmt);
+	bsz = (long)w * (long)h * (long)pixsz;
 
 	if(fmt == IMG_FMT_IDX8) {
 		/* add space for the colormap, and space to align it to sizeof(int) */
