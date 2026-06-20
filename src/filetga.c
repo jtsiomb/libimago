@@ -126,7 +126,7 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 	int i, idx, c, r, g, b;
 	int rle_mode = 0, rle_pix_left = 0;
 	int pixel_bytes;
-	int fmt;
+	int fmt, alpha;
 	struct img_colormap cmap;
 
 	/* read header */
@@ -187,15 +187,25 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 	x = hdr.img_width;
 	y = hdr.img_height;
 
-	if(hdr.img_type == IMG_CMAP || hdr.img_type == IMG_RLE_CMAP) {
+	switch(hdr.img_type) {
+	case IMG_CMAP:
+	case IMG_RLE_CMAP:
 		if(hdr.img_bpp != 8) {
 			fprintf(stderr, "read_tga: indexed images with more than 8bpp not supported\n");
 			return -1;
 		}
 		pixel_bytes = 1;
 		fmt = IMG_FMT_IDX8;
-	} else {
-		int alpha = hdr.img_desc & 0xf;
+		break;
+
+	case IMG_BW:
+	case IMG_RLE_BW:
+		pixel_bytes = 1;
+		fmt = IMG_FMT_GREY8;
+		break;
+
+	default:	/* RGBA/RLE_RGBA */
+		alpha = hdr.img_desc & 0xf;
 		pixel_bytes = alpha ? 4 : 3;
 		fmt = alpha ? IMG_FMT_RGBA32 : IMG_FMT_RGB24;
 	}
@@ -385,7 +395,7 @@ static int read_pixel(struct img_io *io, int fmt, unsigned char *pix)
 {
 	int r, g, b, a;
 
-	if(fmt == IMG_FMT_IDX8) {
+	if(fmt == IMG_FMT_IDX8 || fmt == IMG_FMT_GREY8) {
 		if((b = iofgetc(io)) == -1) {
 			return -1;
 		}
