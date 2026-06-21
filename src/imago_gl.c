@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2026 John Tsiombikas <nuclear@mutantstargoat.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -80,6 +80,7 @@ static gl_get_error_func gl_get_error;
 static gl_pixel_storei_func gl_pixel_storei;
 
 static int load_glfunc(void);
+static int gen_mipmaps(struct img_pixmap *img, int intfmt, int fmt, int type);
 
 unsigned int img_fmt_glfmt(enum img_fmt fmt)
 {
@@ -219,8 +220,15 @@ unsigned int img_gltexture(struct img_pixmap *img)
 	gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	gl_pixel_storei(GL_UNPACK_ALIGNMENT, 1);
 	if(!gl_generate_mipmap) {
+		gl_get_error();
 		gl_tex_parameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, 1);
-		gl_get_error();	/* clear errors in case SGIS_generate_mipmap is not supported */
+		if(gl_get_error()) {
+			/* generate mipmaps manually */
+			if(gen_mipmaps(img, intfmt, fmt, type) == -1) {
+				/* failed, don't use mipmaps */
+				gl_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			}
+		}
 	}
 	gl_tex_image2d(GL_TEXTURE_2D, 0, intfmt, img->width, img->height, 0, fmt, type, img->pixels);
 	if(gl_generate_mipmap) {
@@ -324,4 +332,56 @@ static int load_glfunc(void)
 #endif
 
 	return (gl_gen_textures && gl_bind_texture && gl_tex_parameteri && gl_tex_image2d && gl_get_error && gl_pixel_storei) ? 0 : -1;
+}
+
+static int gen_mipmaps(struct img_pixmap *img, int intfmt, int fmt, int type)
+{
+	struct img_pixmap mip[2], *from, *to;
+	int lvl, i, j, k, min, sx, sy;
+	float pix[4], acc[4];
+
+	min = img->width < img->height ? img->width : img->height;
+	min >>= 1;
+
+	if(!min) return 0;
+
+	img_init(mip);
+	img_init(mip + 1);
+	if(img_copy(mip, img) == -1) {
+		return -1;
+	}
+	lvl = 0;
+
+	do {
+		from = mip + (lvl & 1);
+		to = mip + (++lvl & 1);
+
+		if(img_set_pixels(to, from->width >> 1, from->height >> 1, from->fmt, 0) == -1) {
+			img_destroy(mip);
+			img_destroy(mip + 1);
+			return -1;
+		}
+
+		for(i=0; i<to->height; i++) {
+			sy = i << 1;
+			for(j=0; j<to->width; j++) {
+				sx = j << 1;
+				img_getpixel4f(from, sx, sy, acc, acc + 1, acc + 2, acc + 3);
+				img_getpixel4f(from, sx + 1, sy, pix, pix + 1, pix + 2, pix + 3);
+				for(k=0; k<4; k++) acc[k] += pix[k];
+				img_getpixel4f(from, sx + 1, sy + 1, pix, pix + 1, pix + 2, pix + 3);
+				for(k=0; k<4; k++) acc[k] += pix[k];
+				img_getpixel4f(from, sx, sy + 1, pix, pix + 1, pix + 2, pix + 3);
+				for(k=0; k<4; k++) acc[k] += pix[k];
+				img_setpixel4f(to, j, i, acc[0] / 4.0f, acc[1] / 4.0f, acc[2] / 4.0f, acc[3] / 4.0f);
+			}
+		}
+
+		gl_tex_image2d(GL_TEXTURE_2D, lvl, intfmt, to->width, to->height, 0, fmt, type, to->pixels);
+		min >>= 1;
+	} while(min > 0);
+
+	img_destroy(mip);
+	img_destroy(mip + 1);
+	return 0;
 }
