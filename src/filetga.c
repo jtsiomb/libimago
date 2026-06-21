@@ -24,10 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ftmodule.h"
 #include "byteord.h"
 
-#ifdef __GNUC__
-#define PACKED	__attribute__((packed))
-#endif
-
 
 enum {
 	IMG_NONE,
@@ -42,10 +38,6 @@ enum {
 
 #define IS_RLE(x)	((x) >= IMG_RLE_CMAP)
 #define IS_RGBA(x)	((x) == IMG_RGBA || (x) == IMG_RLE_RGBA)
-
-#if defined(__WATCOMC__) || defined(_MSC_VER)
-#pragma pack(push, 1)
-#endif
 
 struct tga_header {
 	uint8_t idlen;			/* id field length */
@@ -67,17 +59,13 @@ struct tga_header {
 							 * bits 0 - 3: alpha or overlay bits
 							 * bits 5 & 4: origin (0 = bottom/left, 1 = top/right)
 							 * bits 7 & 6: data interleaving */
-} PACKED;
+};
 
 struct tga_footer {
 	uint32_t ext_off;		/* extension area offset */
 	uint32_t devdir_off;	/* developer directory offset */
 	char sig[18];				/* signature with . and \0 */
-} PACKED;
-
-#if defined(__WATCOMC__) || defined(_MSC_VER)
-#pragma pack(pop)
-#endif
+};
 
 
 static int check(struct img_io *io);
@@ -115,7 +103,7 @@ static int check(struct img_io *io)
 
 static int iofgetc(struct img_io *io)
 {
-	int c = 0;
+	unsigned char c = 0;
 	return io->read(&c, 1, io->uptr) < 1 ? -1 : c;
 }
 
@@ -126,7 +114,8 @@ static int read_tga(struct img_pixmap *img, struct img_io *io)
 	int i, idx, c, r, g, b;
 	int rle_mode = 0, rle_pix_left = 0;
 	int pixel_bytes;
-	int fmt, alpha;
+	int alpha;
+	enum img_fmt fmt;
 	struct img_colormap cmap;
 
 	/* read header */

@@ -291,14 +291,23 @@ unsigned int img_gltexture_read(struct img_io *io)
 
 static int load_glfunc(void)
 {
+	void *so = RTLD_DEFAULT;
+
+#ifdef __sgi
+	if(!(so = dlopen("libGL.so", RTLD_LAZY))) {
+		fprintf(stderr, "failed to open libGL, trying to load GL from current symbols\n");
+		so = dlopen(0, RTLD_LAZY);
+	}
+#endif
+
 #if defined(__unix__) || defined(__APPLE__)
-	gl_gen_textures = (gl_gen_textures_func)dlsym(RTLD_DEFAULT, "glGenTextures");
-	gl_bind_texture = (gl_bind_texture_func)dlsym(RTLD_DEFAULT, "glBindTexture");
-	gl_tex_parameteri = (gl_tex_parameteri_func)dlsym(RTLD_DEFAULT, "glTexParameteri");
-	gl_tex_image2d = (gl_tex_image2d_func)dlsym(RTLD_DEFAULT, "glTexImage2D");
-	gl_generate_mipmap = (gl_generate_mipmap_func)dlsym(RTLD_DEFAULT, "glGenerateMipmap");
-	gl_get_error = (gl_get_error_func)dlsym(RTLD_DEFAULT, "glGetError");
-	gl_pixel_storei = (gl_pixel_storei_func)dlsym(RTLD_DEFAULT, "glPixelStorei");
+	gl_gen_textures = (gl_gen_textures_func)dlsym(so, "glGenTextures");
+	gl_bind_texture = (gl_bind_texture_func)dlsym(so, "glBindTexture");
+	gl_tex_parameteri = (gl_tex_parameteri_func)dlsym(so, "glTexParameteri");
+	gl_tex_image2d = (gl_tex_image2d_func)dlsym(so, "glTexImage2D");
+	gl_generate_mipmap = (gl_generate_mipmap_func)dlsym(so, "glGenerateMipmap");
+	gl_get_error = (gl_get_error_func)dlsym(so, "glGetError");
+	gl_pixel_storei = (gl_pixel_storei_func)dlsym(so, "glPixelStorei");
 #endif
 
 #ifdef WIN32
