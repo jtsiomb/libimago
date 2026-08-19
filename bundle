@@ -1,0 +1,107 @@
+#!/bin/sh
+
+# Run this script to create a standalone source tree of imago with all
+# dependencies included, ready to be dropped in any project where 3rd party
+# dependencies would be inconvenient. A simple Makefile is also generated that
+# can be called recursively from your main build system to compile imago and its
+# dependencies as a static library. Alternatively you can just include all the
+# source files in your build directly.
+#
+# run with argument "keep", to leave the downloaded 3rd party libraries in a
+# directory "3rdparty", instead of removing them.
+
+dest=imago_bundle
+
+dload()
+{
+	if ! wget -nv $1; then
+		echo "failed to download: $1" >&2
+		exit 1
+	fi
+}
+
+if [ "$1" = keep ]; then
+	keep=true
+else
+	keep=false
+fi
+
+echo "-- Preparing directory structure ..."
+
+rm -rf $dest
+
+mkdir -p 3rdparty
+mkdir -p $dest/src
+mkdir -p $dest/zlib
+mkdir -p $dest/libpng
+mkdir -p $dest/jpeglib
+
+cp src/*.c src/*.h $dest/src
+cp README.md $dest
+cp COPYING COPYING.LESSER $dest
+
+echo "-- Downloading and preparing current zlib ..."
+
+cd 3rdparty
+dload https://zlib.net/current/zlib.tar.gz
+gzip -cd zlib.tar.gz | tar xf -
+mv zlib-* zlib
+cp zlib/*.c ../$dest/zlib
+cp zlib/*.h ../$dest/zlib
+cp zlib/README ../$dest/zlib
+cp zlib/LICENSE ../$dest/zlib
+
+pngver=1.6.58
+echo "-- Downloading and preparing libpng $pngver ..."
+
+dload https://download.sourceforge.net/libpng/libpng-$pngver.tar.gz
+gzip -cd libpng-$pngver.tar.gz | tar xf -
+mv libpng-$pngver libpng
+cp libpng/png*.c ../$dest/libpng
+cp libpng/png*.h ../$dest/libpng
+cp libpng/README ../$dest/libpng
+cp libpng/LICENSE ../$dest/libpng
+
+jpegver=v10
+echo "-- Downloading and preparing jpeglib $jpegver ..."
+
+dload https://www.ijg.org/files/jpegsrc.$jpegver.tar.gz
+gzip -cd jpegsrc.$jpegver.tar.gz | tar xf -
+mv jpeg-10 jpeglib
+cp jpeglib/j*.c jpeglib/j*.h ../$dest/jpeglib
+cp jpeglib/README ../$dest/jpeglib
+cp jpeglib/jconfig.vc ../$dest/jpeglib/jconfig.h
+rm -f ../$dest/jpeglib/jmemmac.c ../$dest/jpeglib/jmemdos.c
+rm -f ../$dest/jpeglib/jmemname.c ../$dest/jpeglib/jmemansi.c
+rm -f ../$dest/jpeglib/jpegtran.c
+
+cd ..
+$keep || rm -rf 3rdparty
+cd $dest
+
+echo '-- Generating Makefile ...'
+
+find src -name '*.c' | xargs echo 'libsrc =' >Makefile
+find libpng -name '*.c' | xargs echo 'png =' >>Makefile
+find zlib -name '*.c' | xargs echo 'zlib =' >>Makefile
+find jpeglib -name '*.c' | xargs echo 'jpeg =' >>Makefile
+echo 'src = $(libsrc) $(png) $(zlib) $(jpeg)' >>Makefile
+echo 'obj = $(src:.c=.o)' >>Makefile
+echo 'lib = libimago.a' >>Makefile
+echo >>Makefile
+echo 'CFLAGS = -O2 -D_LARGEFILE64_SOURCE -Ijpeglib' >>Makefile
+echo >>Makefile
+echo '$(lib): $(obj)' >>Makefile
+echo '	$(AR) rcs $@ $(obj)' >>Makefile
+echo >>Makefile
+echo '.PHONY: clean' >>Makefile
+echo 'clean:' >>Makefile
+echo '	rm -f $(obj) $(lib)' >>Makefile
+
+echo '-- Done.'
+echo
+echo 'Created a standalone source tree for imago with all dependencies included at:'
+echo "$dest."
+echo 'You can use the generated Makefile to compile imago as a static library and'
+echo 'link it with your program, or include all the source files (subdirectories src,'
+echo 'libpng, zlib, and jpeglib) directly in your build process.'

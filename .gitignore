@@ -15,6 +15,13 @@ modules.c
 *.tga
 *.ppm
 *.pgm
+*.lbm
+*.ilbm
 examples/simpleconv/sconv
 examples/imagoview/imagoview
 examples/glimago/glimago
+3rdparty/
+*.tar.gz
+*.zip
+imago_bundle/
+prepare_release
