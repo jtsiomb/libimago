@@ -58,7 +58,10 @@ dload https://download.sourceforge.net/libpng/libpng-$pngver.tar.gz
 gzip -cd libpng-$pngver.tar.gz | tar xf -
 mv libpng-$pngver libpng
 cp libpng/png*.c ../$dest/libpng
-cp libpng/png*.h ../$dest/libpng
+for i in libpng/png*.h; do
+	cat $i | sed 's/pnglibconf\.h/pnglconf.h/g' >../$dest/$i
+done
+cp libpng/scripts/pnglibconf.h.prebuilt ../$dest/libpng/pnglconf.h
 cp libpng/README ../$dest/libpng
 cp libpng/LICENSE ../$dest/libpng
 
@@ -89,10 +92,13 @@ echo 'src = $(libsrc) $(png) $(zlib) $(jpeg)' >>Makefile
 echo 'obj = $(src:.c=.o)' >>Makefile
 echo 'lib = libimago.a' >>Makefile
 echo >>Makefile
-echo 'CFLAGS = -O2 -D_LARGEFILE64_SOURCE -Ijpeglib' >>Makefile
+echo 'CFLAGS = -O2 -D_LARGEFILE64_SOURCE -DZLIB_INSECURE -Ijpeglib -Ilibpng -Izlib' >>Makefile
 echo >>Makefile
 echo '$(lib): $(obj)' >>Makefile
 echo '	$(AR) rcs $@ $(obj)' >>Makefile
+echo >>Makefile
+echo '.c.o:' >>Makefile
+echo '	$(CC) -o $@ -c $< $(CFLAGS)' >>Makefile
 echo >>Makefile
 echo '.PHONY: clean' >>Makefile
 echo 'clean:' >>Makefile
