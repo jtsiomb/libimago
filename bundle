@@ -37,6 +37,7 @@ mkdir -p $dest/libpng
 mkdir -p $dest/jpeglib
 
 cp src/*.c src/*.h $dest/src
+./configure --gen-modules >$dest/src/modules.c
 cp README.md $dest
 cp COPYING COPYING.LESSER $dest
 

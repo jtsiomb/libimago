@@ -53,6 +53,12 @@ for arg in "$@"; do
 	--disable-debug)
 		dbg=false;;
 
+		# used by the bundle script to generate a separate modules.c file
+	--gen-modules)
+		gen_module_init
+		exit 0
+		;;
+
 	--help)
 		echo 'usage: ./configure [options]'
 		echo 'options:'
