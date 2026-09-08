@@ -25,7 +25,7 @@ later version published by the Free Software Foundation). See `COPYING` and
 
 Download
 --------
-Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.4.tar.gz
+Latest release: http://nuclear.mutantstargoat.com/sw/libimago/files/libimago-2.4.1.tar.gz
 
 Grab the source code from github: https://github.com/jtsiomb/libimago
 
