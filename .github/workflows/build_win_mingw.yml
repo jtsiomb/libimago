@@ -1,0 +1,39 @@
+name: Windows (mingw) build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        install: |
+          mingw-w64-x86_64-gcc make mingw-w64-x86_64-libpng
+          mingw-w64-x86_64-libjpeg-turbo
+
+    - name: configure
+      run: ./configure --enable-opt --prefix=$(pwd)/staging/imago2-mingw64
+
+    - name: build
+      run: make
+
+    - name: stage install
+      run: |
+        make install
+
+    - uses: actions/upload-artifact@v4
+      with:
+          name: imago2-mingw64
+          path: staging
+
+# vi:ts=2 sts=2 sw=2 expandtab:
