@@ -1,6 +1,9 @@
 libimago
 ========
 
+![GNU/Linux build status](https://github.com/jtsiomb/libimago/actions/workflows/build_gnulinux.yml/badge.svg)
+![Windows (MinGW) build status](https://github.com/jtsiomb/libimago/actions/workflows/build_win_mingw.yml/badge.svg)
+
 Overview
 --------
 Imago is a simple C library for reading and writing images in many different
