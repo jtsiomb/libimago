@@ -15,11 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <stdlib.h>
 #include <string.h>
 #if defined(__WATCOMC__) || defined(WIN32) || defined(MSDOS)
 #include <malloc.h>
 #else
-#ifndef __FreeBSD__
+#if !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__)
 #include <alloca.h>
 #endif
 #endif

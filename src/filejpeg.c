@@ -115,7 +115,7 @@ static int read(struct img_pixmap *img, struct img_io *io)
 	struct jpeg_decompress_struct cinfo;
 	struct error_mgr jerr;
 	struct src_mgr src;
-	unsigned char **scanlines;
+	unsigned char **scanlines = 0;
 
 	io->seek(0, SEEK_CUR, io->uptr);
 
