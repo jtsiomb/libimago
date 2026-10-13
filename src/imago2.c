@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2026 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -31,6 +31,15 @@ static int pixel_size(enum img_fmt fmt);
 static size_t def_read(void *buf, size_t bytes, void *uptr);
 static size_t def_write(void *buf, size_t bytes, void *uptr);
 static long def_seek(long offset, int whence, void *uptr);
+
+
+struct img_mem {
+	unsigned char *mem;
+	long cur, len;
+};
+
+static size_t mem_read(void *buf, size_t bytes, void *uptr);
+static long mem_seek(long offs, int whence, void *uptr);
 
 
 void img_init(struct img_pixmap *img)
@@ -252,6 +261,65 @@ int img_write(struct img_pixmap *img, struct img_io *io)
 	}
 
 	return mod->write(img, io);
+}
+
+int img_read_mem(struct img_pixmap *img, void *membuf, size_t size)
+{
+	struct img_io io;
+	struct img_mem mem;
+
+	mem.mem = membuf;
+	mem.cur = 0;
+	mem.len = size;
+
+	io.uptr = &mem;
+	io.read = mem_read;
+	io.seek = mem_seek;
+	io.write = 0;
+
+	return img_read(img, &io);
+}
+
+void *img_load_pixels_io(struct img_io *io, int *xsz, int *ysz, enum img_fmt fmt)
+{
+	struct img_pixmap img;
+
+	img_init(&img);
+
+	if(img_read(&img, io) == -1) {
+		return 0;
+	}
+	if(img.fmt != fmt) {
+		if(img_convert(&img, fmt) == -1) {
+			img_destroy(&img);
+			return 0;
+		}
+	}
+
+	*xsz = img.width;
+	*ysz = img.height;
+	return img.pixels;
+}
+
+void *img_load_pixels_mem(void *mem, size_t size, int *xsz, int *ysz, enum img_fmt fmt)
+{
+	struct img_pixmap img;
+
+	img_init(&img);
+
+	if(img_read_mem(&img, mem, size) == -1) {
+		return 0;
+	}
+	if(img.fmt != fmt) {
+		if(img_convert(&img, fmt) == -1) {
+			img_destroy(&img);
+			return 0;
+		}
+	}
+
+	*xsz = img.width;
+	*ysz = img.height;
+	return img.pixels;
 }
 
 int img_to_float(struct img_pixmap *img)
@@ -496,3 +564,44 @@ static long def_seek(long offset, int whence, void *uptr)
 	return ftell(uptr);
 }
 
+
+static size_t mem_read(void *buf, size_t bytes, void *uptr)
+{
+	struct img_mem *mem = (struct img_mem*)uptr;
+	size_t rdsz;
+
+	rdsz = mem->cur + bytes <= mem->len ? bytes : mem->len - mem->cur;
+	if(rdsz > 0) {
+		memcpy(buf, mem->mem + mem->cur, rdsz);
+		mem->cur += rdsz;
+	}
+	return rdsz;
+}
+
+static long mem_seek(long offs, int whence, void *uptr)
+{
+	long newcur;
+	struct img_mem *mem = (struct img_mem*)uptr;
+
+	switch(whence) {
+	case SEEK_SET:
+		newcur = offs;
+		break;
+
+	case SEEK_END:
+		newcur = mem->len + offs;
+		break;
+
+	case SEEK_CUR:
+		newcur = mem->cur + offs;
+		break;
+
+	default:
+		return mem->cur;
+	}
+
+	if(newcur < 0) newcur = 0;
+	if(newcur > mem->len) newcur = mem->len;
+	mem->cur = newcur;
+	return newcur;
+}

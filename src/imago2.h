@@ -1,6 +1,6 @@
 /*
 libimago - a multi-format image file input/output library.
-Copyright (C) 2010-2021 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2010-2026 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define IMAGO2_H_
 
 #include <stdio.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 #define IMG_OPTARG(arg, val)	arg = val
@@ -143,6 +144,13 @@ int img_write_file(struct img_pixmap *img, FILE *fp);
 int img_read(struct img_pixmap *img, struct img_io *io);
 /* Writes an image using user-defined file-i/o functions (see img_io_set_*) */
 int img_write(struct img_pixmap *img, struct img_io *io);
+
+/* Reads an image from a memory buffer */
+int img_read_mem(struct img_pixmap *img, void *mem, size_t size);
+
+/* img_load_pixels-style helpers for memory and custom io */
+void *img_load_pixels_io(struct img_io *io, int *xsz, int *ysz, IMG_OPTARG(enum img_fmt fmt, IMG_FMT_RGBA32));
+void *img_load_pixels_mem(void *mem, size_t size, int *xsz, int *ysz, IMG_OPTARG(enum img_fmt fmt, IMG_FMT_RGBA32));
 
 /* Converts an image to the specified pixel format */
 int img_convert(struct img_pixmap *img, enum img_fmt tofmt);
