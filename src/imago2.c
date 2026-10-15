@@ -34,7 +34,7 @@ static long def_seek(long offset, int whence, void *uptr);
 
 
 struct img_mem {
-	unsigned char *mem;
+	const unsigned char *mem;
 	long cur, len;
 };
 
@@ -263,7 +263,7 @@ int img_write(struct img_pixmap *img, struct img_io *io)
 	return mod->write(img, io);
 }
 
-int img_read_mem(struct img_pixmap *img, void *membuf, size_t size)
+int img_read_mem(struct img_pixmap *img, const void *membuf, size_t size)
 {
 	struct img_io io;
 	struct img_mem mem;
@@ -301,7 +301,7 @@ void *img_load_pixels_io(struct img_io *io, int *xsz, int *ysz, enum img_fmt fmt
 	return img.pixels;
 }
 
-void *img_load_pixels_mem(void *mem, size_t size, int *xsz, int *ysz, enum img_fmt fmt)
+void *img_load_pixels_mem(const void *mem, size_t size, int *xsz, int *ysz, enum img_fmt fmt)
 {
 	struct img_pixmap img;
 

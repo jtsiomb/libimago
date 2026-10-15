@@ -146,11 +146,11 @@ int img_read(struct img_pixmap *img, struct img_io *io);
 int img_write(struct img_pixmap *img, struct img_io *io);
 
 /* Reads an image from a memory buffer */
-int img_read_mem(struct img_pixmap *img, void *mem, size_t size);
+int img_read_mem(struct img_pixmap *img, const void *mem, size_t size);
 
 /* img_load_pixels-style helpers for memory and custom io */
 void *img_load_pixels_io(struct img_io *io, int *xsz, int *ysz, IMG_OPTARG(enum img_fmt fmt, IMG_FMT_RGBA32));
-void *img_load_pixels_mem(void *mem, size_t size, int *xsz, int *ysz, IMG_OPTARG(enum img_fmt fmt, IMG_FMT_RGBA32));
+void *img_load_pixels_mem(const void *mem, size_t size, int *xsz, int *ysz, IMG_OPTARG(enum img_fmt fmt, IMG_FMT_RGBA32));
 
 /* Converts an image to the specified pixel format */
 int img_convert(struct img_pixmap *img, enum img_fmt tofmt);
