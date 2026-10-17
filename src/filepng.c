@@ -156,7 +156,7 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	png_info *info;
 	png_text txt;
 	struct img_pixmap tmpimg;
-	unsigned char **rows;
+	unsigned char **rows = 0;
 	unsigned char *pixptr;
 	int i, coltype;
 	struct img_colormap *cmap;
@@ -174,10 +174,12 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	/* if the input image is floating-point, we need to convert it to integer */
 	if(img_is_float(img)) {
 		if(img_copy(&tmpimg, img) == -1) {
+			png_destroy_write_struct(&png, &info);
 			return -1;
 		}
 		if(img_to_integer(&tmpimg) == -1) {
 			img_destroy(&tmpimg);
+			png_destroy_write_struct(&png, &info);
 			return -1;
 		}
 		img = &tmpimg;
@@ -191,6 +193,7 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	if(setjmp(png_jmpbuf(png))) {
 		png_destroy_write_struct(&png, &info);
 		img_destroy(&tmpimg);
+		free(rows);
 		return -1;
 	}
 	png_set_write_fn(png, io, write_func, flush_func);
