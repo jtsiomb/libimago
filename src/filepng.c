@@ -219,7 +219,6 @@ static int write_file(struct img_pixmap *img, struct img_io *io)
 	png_set_rows(png, info, rows);
 
 	png_write_png(png, info, 0, 0);
-	png_write_end(png, info);
 	png_destroy_write_struct(&png, &info);
 
 	free(rows);
@@ -232,7 +231,7 @@ static void read_func(png_struct *png, unsigned char *data, size_t len)
 {
 	struct img_io *io = (struct img_io*)png_get_io_ptr(png);
 
-	if(io->read(data, len, io->uptr) == -1) {
+	if(io->read(data, len, io->uptr) < len) {
 		longjmp(png_jmpbuf(png), 1);
 	}
 }
@@ -241,7 +240,7 @@ static void write_func(png_struct *png, unsigned char *data, size_t len)
 {
 	struct img_io *io = (struct img_io*)png_get_io_ptr(png);
 
-	if(io->write(data, len, io->uptr) == -1) {
+	if(io->write(data, len, io->uptr) < len) {
 		longjmp(png_jmpbuf(png), 1);
 	}
 }
